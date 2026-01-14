@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narumi - 장애물 피하기 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a2e;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #gameContainer {
+            position: relative;
+        }
+        #gameCanvas {
+            border: 4px solid #4a4a6a;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
+        }
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+        }
+        #startScreen h1, #gameOverScreen h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px #000;
+        }
+        #startScreen p, #gameOverScreen p {
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .btn {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 16px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #ff8e8e;
+            transform: scale(1.05);
+        }
+        #gameOverScreen {
+            display: none;
+        }
+        .score-display {
+            font-size: 24px;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+        .time-display {
+            font-size: 18px;
+            color: #87ceeb;
+        }
+        .invincible-notice {
+            color: #ff69b4;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        #pauseBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        #pauseBtn:hover {
+            background: rgba(100, 100, 150, 0.8);
+        }
+        #pauseScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 8px;
+            z-index: 5;
+        }
+        #pauseScreen h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+        /* 모바일 터치 컨트롤 */
+        #touchControls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+        .touch-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            pointer-events: auto;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.6);
+        }
+        @media (max-width: 820px) {
+            #gameCanvas {
+                width: 100vw;
+                height: auto;
+                max-height: 80vh;
+            }
+            #pauseBtn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .touch-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div id="startScreen">
+            <h1>🎮 Narumi Game 🎮</h1>
+            <p>← → 방향키 또는 터치로 이동</p>
+            <p>🪙 코인을 먹으면 점수 UP!</p>
+            <p>🌸 꽃을 먹으면 3초간 무적!</p>
+            <p>🪵 장애물을 피해요!</p>
+            <button class="btn" onclick="startGame()">게임 시작</button>
+        </div>
+
+        <div id="gameOverScreen">
+            <h1>💀 Game Over 💀</h1>
+            <p class="score-display">점수: <span id="finalScore">0</span></p>
+            <p class="time-display">플레이 시간: <span id="finalTime">0</span>초</p>
+            <button class="btn" onclick="restartGame()">다시 시작</button>
+        </div>
+
+        <div id="pauseScreen">
+            <h1>⏸️ 일시정지</h1>
+            <button class="btn" onclick="togglePause()">계속하기</button>
+        </div>
+
+        <button id="pauseBtn" onclick="togglePause()" style="display: none;">⏸️ 일시정지</button>
+
+        <!-- 모바일 터치 컨트롤 -->
+        <div id="touchControls" style="display: none;">
+            <button id="leftBtn" class="touch-btn touch-left">◀</button>
+            <button id="rightBtn" class="touch-btn touch-right">▶</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 이미지 로드
+        const images = {
+            narumi: new Image(),
+            attack: new Image(),
+            background: new Image(),
+            obstacle: new Image(),
+            coin: new Image(),
+            flower: new Image()
+        };
+
+        images.narumi.src = 'narumi.png';
+        images.attack.src = 'attack.png';
+        images.background.src = 'background.jpg';
+        images.obstacle.src = 'obstacle.png';
+        images.coin.src = 'coin.png';
+        images.flower.src = 'flower.png';
+
+        // 게임 상태
+        let gameState = {
+            isRunning: false,
+            isPaused: false,
+            score: 0,
+            lives: 3,
+            startTime: 0,
+            playTime: 0,
+            pausedTime: 0,
+            isInvincible: false,
+            invincibleEndTime: 0,
+            isHurt: false,
+            hurtEndTime: 0
+        };
+
+        // 플레이어 (원본 이미지 비율 유지)
+        const player = {
+            x: 400,
+            y: 480,
+            width: 80,
+            height: 80,
+            speed: 8
+        };
+
+        // 떨어지는 오브젝트들
+        let fallingObjects = [];
+
+        // 키 입력
+        const keys = {
+            left: false,
+            right: false
+        };
+
+        // 키 이벤트
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'ArrowRight') keys.right = true;
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') togglePause();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'ArrowRight') keys.right = false;
+        });
+
+        // 터치 컨트롤 항상 표시
+        document.getElementById('touchControls').style.display = 'flex';
+
+        // 터치 이벤트 설정
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+
+        // 왼쪽 버튼
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.left = true;
+        });
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.left = false;
+        });
+        leftBtn.addEventListener('mousedown', () => keys.left = true);
+        leftBtn.addEventListener('mouseup', () => keys.left = false);
+        leftBtn.addEventListener('mouseleave', () => keys.left = false);
+
+        // 오른쪽 버튼
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.right = true;
+        });
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.right = false;
+        });
+        rightBtn.addEventListener('mousedown', () => keys.right = true);
+        rightBtn.addEventListener('mouseup', () => keys.right = false);
+        rightBtn.addEventListener('mouseleave', () => keys.right = false);
+
+        // 도트 스타일 하트 그리기
+        function drawPixelHeart(x, y, size, fillAmount) {
+            const pixelSize = size / 8;
+            const heartPattern = [
+                [0,0,1,1,0,0,1,1,0,0],
+                [0,1,1,1,1,1,1,1,1,0],
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,1,1,1,1,1,1,1,1,1],
+                [0,1,1,1,1,1,1,1,1,0],
+                [0,0,1,1,1,1,1,1,0,0],
+                [0,0,0,1,1,1,1,0,0,0],
+                [0,0,0,0,1,1,0,0,0,0]
+            ];
+
+            for (let row = 0; row < heartPattern.length; row++) {
+                for (let col = 0; col < heartPattern[row].length; col++) {
+                    if (heartPattern[row][col] === 1) {
+                        const px = x + col * pixelSize;
+                        const py = y + row * pixelSize;
+
+                        // fillAmount에 따라 색상 결정
+                        if (fillAmount >= 1) {
+                            ctx.fillStyle = '#ff4444';
+                        } else if (fillAmount >= 0.5) {
+                            // 반쪽 하트
+                            const halfPoint = x + (heartPattern[row].length / 2) * pixelSize;
+                            if (px < halfPoint) {
+                                ctx.fillStyle = '#ff4444';
+                            } else {
+                                ctx.fillStyle = '#444444';
+                            }
+                        } else {
+                            ctx.fillStyle = '#444444';
+                        }
+
+                        ctx.fillRect(px, py, pixelSize, pixelSize);
+
+                        // 테두리
+                        ctx.strokeStyle = '#880000';
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeRect(px, py, pixelSize, pixelSize);
+                    }
+                }
+            }
+        }
+
+        // 생명력 그리기
+        function drawLives() {
+            const heartSize = 32;
+            const spacing = 50;
+            const startX = 20;
+            const startY = 20;
+
+            for (let i = 0; i < 3; i++) {
+                let fillAmount = 0;
+                const lifeForThisHeart = gameState.lives - i;
+
+                if (lifeForThisHeart >= 1) {
+                    fillAmount = 1;
+                } else if (lifeForThisHeart >= 0.5) {
+                    fillAmount = 0.5;
+                } else {
+                    fillAmount = 0;
+                }
+
+                drawPixelHeart(startX + i * spacing, startY, heartSize, fillAmount);
+            }
+        }
+
+        // 점수 그리기
+        function drawScore() {
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('점수: ' + gameState.score, canvas.width - 20, 85);
+        }
+
+        // 플레이 시간 그리기
+        function drawTime() {
+            const currentTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            gameState.playTime = currentTime;
+
+            ctx.fillStyle = '#87ceeb';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('시간: ' + currentTime + '초', canvas.width - 20, 115);
+        }
+
+        // 무적 상태 표시
+        function drawInvincibleStatus() {
+            if (gameState.isInvincible) {
+                const remainingTime = Math.ceil((gameState.invincibleEndTime - Date.now()) / 1000);
+                ctx.fillStyle = '#ff69b4';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('★ 무적! ' + remainingTime + '초 ★', canvas.width / 2, 30);
+            }
+        }
+
+        // 오브젝트 생성 (비율 6:3.5:0.5)
+        function spawnObject() {
+            const rand = Math.random() * 10;
+            let type;
+            if (rand < 6) {
+                type = 'obstacle';
+            } else if (rand < 9.5) {
+                type = 'coin';
+            } else {
+                type = 'flower';
+            }
+
+            let size = 50;
+            if (type === 'obstacle') size = 60;
+            else if (type === 'coin') size = 40;
+            else if (type === 'flower') size = 45;
+
+            fallingObjects.push({
+                type: type,
+                x: Math.random() * (canvas.width - size),
+                y: -size,
+                width: size,
+                height: size,
+                speed: (2 + Math.random() * 3) * 1.5
+            });
+        }
+
+        // 충돌 감지
+        function checkCollision(obj) {
+            const playerHitbox = {
+                x: player.x + 15,
+                y: player.y + 20,
+                width: player.width - 30,
+                height: player.height - 25
+            };
+
+            return playerHitbox.x < obj.x + obj.width &&
+                   playerHitbox.x + playerHitbox.width > obj.x &&
+                   playerHitbox.y < obj.y + obj.height &&
+                   playerHitbox.y + playerHitbox.height > obj.y;
+        }
+
+        // 게임 업데이트
+        function update() {
+            if (!gameState.isRunning || gameState.isPaused) return;
+
+            // 플레이어 이동
+            if (keys.left && player.x > 0) {
+                player.x -= player.speed;
+            }
+            if (keys.right && player.x < canvas.width - player.width) {
+                player.x += player.speed;
+            }
+
+            // 무적 상태 체크
+            if (gameState.isInvincible && Date.now() > gameState.invincibleEndTime) {
+                gameState.isInvincible = false;
+            }
+
+            // 피격 상태 체크
+            if (gameState.isHurt && Date.now() > gameState.hurtEndTime) {
+                gameState.isHurt = false;
+            }
+
+            // 오브젝트 업데이트
+            for (let i = fallingObjects.length - 1; i >= 0; i--) {
+                const obj = fallingObjects[i];
+                obj.y += obj.speed;
+
+                // 충돌 체크
+                if (checkCollision(obj)) {
+                    if (obj.type === 'coin') {
+                        gameState.score += 10;
+                        fallingObjects.splice(i, 1);
+                    } else if (obj.type === 'flower') {
+                        gameState.isInvincible = true;
+                        gameState.invincibleEndTime = Date.now() + 3000;
+                        fallingObjects.splice(i, 1);
+                    } else if (obj.type === 'obstacle' && !gameState.isInvincible) {
+                        gameState.lives -= 0.5;
+                        gameState.isHurt = true;
+                        gameState.hurtEndTime = Date.now() + 500;
+                        fallingObjects.splice(i, 1);
+
+                        if (gameState.lives <= 0) {
+                            gameOver();
+                        }
+                    } else if (obj.type === 'obstacle' && gameState.isInvincible) {
+                        // 무적 상태에서는 장애물 파괴
+                        fallingObjects.splice(i, 1);
+                        gameState.score += 5;
+                    }
+                    continue;
+                }
+
+                // 화면 밖으로 나간 오브젝트 제거
+                if (obj.y > canvas.height) {
+                    fallingObjects.splice(i, 1);
+                }
+            }
+        }
+
+        // 렌더링
+        function render() {
+            // 배경
+            ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+
+            // 오브젝트 그리기
+            fallingObjects.forEach(obj => {
+                const img = images[obj.type];
+                ctx.drawImage(img, obj.x, obj.y, obj.width, obj.height);
+            });
+
+            // 플레이어 그리기
+            let playerImg = images.narumi;
+            if (gameState.isHurt) {
+                playerImg = images.attack;
+            }
+
+            // 무적 상태일 때 반짝이는 효과
+            if (gameState.isInvincible) {
+                ctx.save();
+                // 황금빛 글로우 효과
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 20 + Math.sin(Date.now() / 100) * 10;
+                ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+                // 추가 반짝임 오버레이
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 150) * 0.2;
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                ctx.restore();
+            } else {
+                ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+            }
+
+            // UI
+            drawLives();
+            drawScore();
+            drawTime();
+            drawInvincibleStatus();
+        }
+
+        // 게임 루프
+        let spawnTimer = 0;
+        function gameLoop() {
+            if (!gameState.isRunning) return;
+
+            if (!gameState.isPaused) {
+                update();
+                render();
+
+                // 오브젝트 스폰 (2배 빈도: 60 -> 30)
+                spawnTimer++;
+                if (spawnTimer > 30) {
+                    spawnObject();
+                    spawnTimer = 0;
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 일시정지 토글
+        function togglePause() {
+            if (!gameState.isRunning) return;
+
+            gameState.isPaused = !gameState.isPaused;
+
+            if (gameState.isPaused) {
+                gameState.pausedTime = Date.now();
+                document.getElementById('pauseScreen').style.display = 'flex';
+                document.getElementById('pauseBtn').textContent = '▶️ 계속';
+            } else {
+                // 일시정지된 시간만큼 startTime 조정
+                const pauseDuration = Date.now() - gameState.pausedTime;
+                gameState.startTime += pauseDuration;
+                // 무적 시간도 조정
+                if (gameState.isInvincible) {
+                    gameState.invincibleEndTime += pauseDuration;
+                }
+                if (gameState.isHurt) {
+                    gameState.hurtEndTime += pauseDuration;
+                }
+                document.getElementById('pauseScreen').style.display = 'none';
+                document.getElementById('pauseBtn').textContent = '⏸️ 일시정지';
+            }
+        }
+
+        // 게임 시작
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('pauseScreen').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'block';
+
+            gameState = {
+                isRunning: true,
+                isPaused: false,
+                score: 0,
+                lives: 3,
+                startTime: Date.now(),
+                playTime: 0,
+                pausedTime: 0,
+                isInvincible: false,
+                invincibleEndTime: 0,
+                isHurt: false,
+                hurtEndTime: 0
+            };
+
+            player.x = canvas.width / 2 - player.width / 2;
+            fallingObjects = [];
+            spawnTimer = 0;
+
+            gameLoop();
+        }
+
+        // 게임 오버
+        function gameOver() {
+            gameState.isRunning = false;
+
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalTime').textContent = gameState.playTime;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('pauseBtn').style.display = 'none';
+        }
+
+        // 재시작
+        function restartGame() {
+            startGame();
+        }
+
+        // 이미지 로드 완료 대기
+        let loadedImages = 0;
+        const totalImages = Object.keys(images).length;
+
+        Object.values(images).forEach(img => {
+            img.onload = () => {
+                loadedImages++;
+                if (loadedImages === totalImages) {
+                    // 초기 화면 렌더링
+                    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+                }
+            };
+        });
+    </script>
+</body>
+</html>
