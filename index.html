@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Youji Games</title>
+    <title>Simsim Games</title>
     <style>
         * {
             margin: 0;
@@ -19,6 +19,72 @@
             align-items: center;
             padding: 40px 20px;
         }
+        /* 헤더 영역 */
+        .header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            color: #fff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ecdc4, #44b3ab);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+        .nickname {
+            font-size: 16px;
+        }
+        .auth-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #4ecdc4, #44b3ab);
+            color: white;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        /* 메인 타이틀 */
         h1 {
             color: #fff;
             font-size: 48px;
@@ -97,7 +163,14 @@
             color: rgba(255, 255, 255, 0.4);
             font-size: 14px;
         }
+        .hidden {
+            display: none !important;
+        }
         @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
             h1 {
                 font-size: 32px;
             }
@@ -122,7 +195,22 @@
     </style>
 </head>
 <body>
-    <h1>Youji Games</h1>
+    <div class="header">
+        <div class="logo">Simsim Games</div>
+        <div class="user-area">
+            <!-- 로그인 전 -->
+            <a href="auth.html" class="auth-btn btn-login" id="loginBtn">로그인</a>
+
+            <!-- 로그인 후 -->
+            <div class="user-info hidden" id="userInfo">
+                <div class="avatar" id="userAvatar">?</div>
+                <span class="nickname" id="userNickname">닉네임</span>
+            </div>
+            <button class="auth-btn btn-logout hidden" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
+        </div>
+    </div>
+
+    <h1>Simsim Games</h1>
     <p class="subtitle">재미있는 미니 게임 모음</p>
 
     <div class="game-grid">
@@ -148,7 +236,56 @@
     </div>
 
     <footer>
-        &copy; 2025 Youji Games
+        &copy; 2025 Simsim Games
     </footer>
+
+    <script src="js/supabase.js"></script>
+    <script>
+        // UI 요소
+        const loginBtn = document.getElementById('loginBtn');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userNickname = document.getElementById('userNickname');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // 로그인 상태 업데이트
+        async function updateAuthUI() {
+            const user = await getCurrentUser();
+
+            if (user) {
+                // 로그인 상태
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+
+                const nickname = user.user_metadata?.nickname || user.email.split('@')[0];
+                userNickname.textContent = nickname;
+                userAvatar.textContent = nickname.charAt(0).toUpperCase();
+            } else {
+                // 로그아웃 상태
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+            }
+        }
+
+        // 로그아웃 처리
+        async function handleLogout() {
+            try {
+                await signOut();
+                updateAuthUI();
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        }
+
+        // 인증 상태 변경 감지
+        onAuthStateChange((event, session) => {
+            updateAuthUI();
+        });
+
+        // 초기 로드
+        updateAuthUI();
+    </script>
 </body>
 </html>
