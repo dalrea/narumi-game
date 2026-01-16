@@ -12,12 +12,12 @@ async function initSupabase() {
     if (supabase) return supabase;
 
     // Supabase JS 라이브러리 동적 로드
-    if (typeof window.supabase === 'undefined') {
+    if (!window.supabase) {
         await new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+            script.src = 'https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
             script.onload = () => {
-                console.log('Supabase library loaded');
+                console.log('Supabase library loaded', window.supabase);
                 resolve();
             };
             script.onerror = (e) => {
@@ -26,10 +26,14 @@ async function initSupabase() {
             };
             document.head.appendChild(script);
         });
+
+        // 라이브러리 로드 후 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     // window.supabase 확인
     if (!window.supabase || !window.supabase.createClient) {
+        console.error('window.supabase:', window.supabase);
         throw new Error('Supabase 라이브러리를 로드할 수 없습니다.');
     }
 
