@@ -3,7 +3,7 @@ const SUPABASE_URL = 'https://gaddpehqcxvvylfehlxh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZGRwZWhxY3h2dnlsZmVobHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MDE0MTgsImV4cCI6MjA4MTM3NzQxOH0.3tJUdK17TVUgY96SsA_PmGtiHm5wSyy1xtGdjNwqUbI';
 
 // 가짜 이메일 도메인 (아이디를 이메일로 변환)
-const FAKE_EMAIL_DOMAIN = '@simsim.local';
+const FAKE_EMAIL_DOMAIN = '@simsim.game';
 
 // Supabase 클라이언트 초기화
 let supabaseClient = null;
