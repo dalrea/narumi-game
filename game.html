@@ -230,12 +230,27 @@
             text-align: center;
         }
         .card.locked {
-            opacity: 0.4;
+            opacity: 0.7;
             cursor: not-allowed;
         }
         .card.locked .card-front {
-            background: linear-gradient(145deg, #444, #333);
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
             border-color: #555;
+        }
+        .card.locked .card-back {
+            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
+            border-color: #555;
+        }
+        .locked-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+        }
+        .locked-hint {
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            margin-top: 5px;
+            line-height: 1.4;
         }
         /* 카드 확대 모달 */
         #cardModal {
@@ -311,6 +326,24 @@
             bottom: 40px;
             color: rgba(255, 255, 255, 0.4);
             font-size: 12px;
+        }
+        .modal-download-btn {
+            position: absolute;
+            bottom: 100px;
+            padding: 12px 24px;
+            font-size: 14px;
+            background: linear-gradient(145deg, #4a90d9, #357abd);
+            color: white;
+            border: 2px solid #5ca0e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 101;
+        }
+        .modal-download-btn:hover {
+            background: linear-gradient(145deg, #5ca0e9, #4a90d9);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(90, 160, 233, 0.5);
         }
         @media (max-width: 820px) {
             #gameCanvas {
@@ -403,6 +436,7 @@
                     </div>
                 </div>
             </div>
+            <button class="modal-download-btn" id="modalDownloadBtn" onclick="event.stopPropagation(); downloadCurrentCard()">📥 이미지 다운로드</button>
             <p class="modal-hint">카드를 클릭하면 뒤집어집니다</p>
             <p class="modal-close-hint">바깥을 클릭하면 닫힙니다</p>
         </div>
@@ -993,18 +1027,34 @@
                     card.onclick = () => openCardModal(i);
                 }
 
-                card.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <img src="${isUnlocked ? 'narumi' + i + '.png' : ''}" alt="Narumi ${i}">
-                            <div class="card-label">${isUnlocked ? 'Narumi Lv.' + i : '???'}</div>
+                if (isUnlocked) {
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <img src="narumi${i}.png" alt="Narumi ${i}">
+                                <div class="card-label">Narumi Lv.${i}</div>
+                            </div>
+                            <div class="card-back">
+                                <img src="attack${i}.png" alt="Attack ${i}">
+                                <div class="card-label">Attack Lv.${i}</div>
+                            </div>
                         </div>
-                        <div class="card-back">
-                            <img src="${isUnlocked ? 'attack' + i + '.png' : ''}" alt="Attack ${i}">
-                            <div class="card-label">${isUnlocked ? 'Attack Lv.' + i : '???'}</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <div class="locked-icon">🔒</div>
+                                <div class="card-label">Lv.${i}</div>
+                                <div class="locked-hint">레벨 ${i}을 클리어하면<br>해금됩니다</div>
+                            </div>
+                            <div class="card-back">
+                                <div class="locked-icon">🔒</div>
+                                <div class="card-label">???</div>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
 
                 container.appendChild(card);
             }
@@ -1024,8 +1074,12 @@
             }
         }
 
+        // 현재 모달에서 보고 있는 레벨
+        let currentModalLevel = 0;
+
         // 카드 모달 열기
         function openCardModal(level) {
+            currentModalLevel = level;
             document.getElementById('modalNarumiImg').src = 'narumi' + level + '.png';
             document.getElementById('modalAttackImg').src = 'attack' + level + '.png';
             document.getElementById('modalNarumiLabel').textContent = 'Narumi Lv.' + level;
@@ -1044,6 +1098,24 @@
         // 모달 카드 뒤집기
         function toggleModalCard() {
             document.getElementById('modalCard').classList.toggle('flipped');
+        }
+
+        // 현재 카드 이미지 다운로드
+        function downloadCurrentCard() {
+            const modalCard = document.getElementById('modalCard');
+            const isFlipped = modalCard.classList.contains('flipped');
+
+            // 뒤집힌 상태면 attack 이미지, 아니면 narumi 이미지
+            const imageSrc = isFlipped ? 'attack' + currentModalLevel + '.png' : 'narumi' + currentModalLevel + '.png';
+            const fileName = isFlipped ? 'attack_lv' + currentModalLevel + '.png' : 'narumi_lv' + currentModalLevel + '.png';
+
+            // 다운로드 링크 생성
+            const link = document.createElement('a');
+            link.href = imageSrc;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // 이미지 로드 완료 대기
