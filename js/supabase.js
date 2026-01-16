@@ -2,9 +2,6 @@
 const SUPABASE_URL = 'https://gaddpehqcxvvylfehlxh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZGRwZWhxY3h2dnlsZmVobHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MDE0MTgsImV4cCI6MjA4MTM3NzQxOH0.3tJUdK17TVUgY96SsA_PmGtiHm5wSyy1xtGdjNwqUbI';
 
-// 가짜 이메일 도메인 (아이디를 이메일로 변환)
-const FAKE_EMAIL_DOMAIN = '@example.com';
-
 // Supabase 클라이언트 초기화
 let supabaseClient = null;
 
@@ -20,11 +17,6 @@ async function initSupabase() {
     return supabaseClient;
 }
 
-// 아이디를 가짜 이메일로 변환
-function usernameToEmail(username) {
-    return username.toLowerCase() + FAKE_EMAIL_DOMAIN;
-}
-
 // 현재 사용자 가져오기
 async function getCurrentUser() {
     const client = await initSupabase();
@@ -32,39 +24,27 @@ async function getCurrentUser() {
     return user;
 }
 
-// 회원가입 (아이디/비밀번호)
-async function signUp(username, password, nickname) {
+// 회원가입 (이메일/비밀번호)
+async function signUp(email, password, nickname) {
     const client = await initSupabase();
-    const email = usernameToEmail(username);
 
     const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
             data: {
-                username: username,
-                nickname: nickname || username
-            },
-            // 이메일 확인 비활성화
-            emailRedirectTo: undefined
+                nickname: nickname || email.split('@')[0]
+            }
         }
     });
 
     if (error) throw error;
-
-    // 회원가입 후 자동 로그인
-    if (data.user && !data.session) {
-        // 이메일 확인이 필요한 경우 바로 로그인 시도
-        return await signIn(username, password);
-    }
-
     return data;
 }
 
-// 로그인 (아이디/비밀번호)
-async function signIn(username, password) {
+// 로그인 (이메일/비밀번호)
+async function signIn(email, password) {
     const client = await initSupabase();
-    const email = usernameToEmail(username);
 
     const { data, error } = await client.auth.signInWithPassword({
         email,
