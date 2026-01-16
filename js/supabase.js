@@ -6,10 +6,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const FAKE_EMAIL_DOMAIN = '@simsim.local';
 
 // Supabase 클라이언트 초기화
-let supabase = null;
+let supabaseClient = null;
 
 async function initSupabase() {
-    if (supabase) return supabase;
+    if (supabaseClient) return supabaseClient;
 
     // Supabase JS 라이브러리 동적 로드
     if (!window.supabase) {
@@ -37,9 +37,9 @@ async function initSupabase() {
         throw new Error('Supabase 라이브러리를 로드할 수 없습니다.');
     }
 
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase client created');
-    return supabase;
+    return supabaseClient;
 }
 
 // 아이디를 가짜 이메일로 변환
