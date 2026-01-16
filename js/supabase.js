@@ -1,6 +1,6 @@
 // Supabase 클라이언트 설정
 const SUPABASE_URL = 'https://gaddpehqcxvvylfehlxh.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Vg3261Vtw0WFts0BEGx7fw_vyfvI6un';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZGRwZWhxY3h2dnlsZmVobHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MDE0MTgsImV4cCI6MjA4MTM3NzQxOH0.3tJUdK17TVUgY96SsA_PmGtiHm5wSyy1xtGdjNwqUbI';
 
 // 가짜 이메일 도메인 (아이디를 이메일로 변환)
 const FAKE_EMAIL_DOMAIN = '@simsim.local';
@@ -12,17 +12,29 @@ async function initSupabase() {
     if (supabase) return supabase;
 
     // Supabase JS 라이브러리 동적 로드
-    if (!window.supabase) {
+    if (typeof window.supabase === 'undefined') {
         await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-            script.onload = resolve;
-            script.onerror = reject;
+            script.onload = () => {
+                console.log('Supabase library loaded');
+                resolve();
+            };
+            script.onerror = (e) => {
+                console.error('Failed to load Supabase library', e);
+                reject(e);
+            };
             document.head.appendChild(script);
         });
     }
 
+    // window.supabase 확인
+    if (!window.supabase || !window.supabase.createClient) {
+        throw new Error('Supabase 라이브러리를 로드할 수 없습니다.');
+    }
+
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase client created');
     return supabase;
 }
 
