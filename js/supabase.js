@@ -2,6 +2,9 @@
 const SUPABASE_URL = 'https://gaddpehqcxvvylfehlxh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Vg3261Vtw0WFts0BEGx7fw_vyfvI6un';
 
+// 가짜 이메일 도메인 (아이디를 이메일로 변환)
+const FAKE_EMAIL_DOMAIN = '@simsim.local';
+
 // Supabase 클라이언트 초기화
 let supabase = null;
 
@@ -23,6 +26,11 @@ async function initSupabase() {
     return supabase;
 }
 
+// 아이디를 가짜 이메일로 변환
+function usernameToEmail(username) {
+    return username.toLowerCase() + FAKE_EMAIL_DOMAIN;
+}
+
 // 현재 사용자 가져오기
 async function getCurrentUser() {
     const client = await initSupabase();
@@ -30,26 +38,40 @@ async function getCurrentUser() {
     return user;
 }
 
-// 회원가입
-async function signUp(email, password, nickname) {
+// 회원가입 (아이디/비밀번호)
+async function signUp(username, password, nickname) {
     const client = await initSupabase();
+    const email = usernameToEmail(username);
+
     const { data, error } = await client.auth.signUp({
         email,
         password,
         options: {
             data: {
-                nickname: nickname
-            }
+                username: username,
+                nickname: nickname || username
+            },
+            // 이메일 확인 비활성화
+            emailRedirectTo: undefined
         }
     });
 
     if (error) throw error;
+
+    // 회원가입 후 자동 로그인
+    if (data.user && !data.session) {
+        // 이메일 확인이 필요한 경우 바로 로그인 시도
+        return await signIn(username, password);
+    }
+
     return data;
 }
 
-// 로그인
-async function signIn(email, password) {
+// 로그인 (아이디/비밀번호)
+async function signIn(username, password) {
     const client = await initSupabase();
+    const email = usernameToEmail(username);
+
     const { data, error } = await client.auth.signInWithPassword({
         email,
         password
@@ -66,20 +88,6 @@ async function signOut() {
     if (error) throw error;
 }
 
-// 구글 로그인
-async function signInWithGoogle() {
-    const client = await initSupabase();
-    const { data, error } = await client.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: window.location.origin
-        }
-    });
-
-    if (error) throw error;
-    return data;
-}
-
 // 점수 저장
 async function saveScore(gameId, score) {
     const client = await initSupabase();
@@ -90,13 +98,15 @@ async function saveScore(gameId, score) {
         return null;
     }
 
+    const nickname = user.user_metadata?.nickname || user.user_metadata?.username || 'Player';
+
     const { data, error } = await client
         .from('scores')
         .insert({
             user_id: user.id,
             game_id: gameId,
             score: score,
-            nickname: user.user_metadata?.nickname || user.email.split('@')[0]
+            nickname: nickname
         });
 
     if (error) throw error;
@@ -144,4 +154,11 @@ async function onAuthStateChange(callback) {
     client.auth.onAuthStateChange((event, session) => {
         callback(event, session);
     });
+}
+
+// 현재 사용자 닉네임 가져오기
+async function getCurrentNickname() {
+    const user = await getCurrentUser();
+    if (!user) return null;
+    return user.user_metadata?.nickname || user.user_metadata?.username || 'Player';
 }
