@@ -12,11 +12,17 @@
         }
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             background: #1a1a2e;
             font-family: 'Press Start 2P', monospace;
+        }
+        #gameWrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         #gameContainer {
             position: relative;
@@ -26,7 +32,7 @@
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(100, 100, 255, 0.3);
         }
-        #startScreen, #gameOverScreen {
+        #startScreen, #gameOverScreen, #gameSuccessScreen {
             position: absolute;
             top: 0;
             left: 0;
@@ -40,17 +46,17 @@
             color: white;
             border-radius: 8px;
         }
-        #startScreen h1, #gameOverScreen h1 {
+        #startScreen h1, #gameOverScreen h1, #gameSuccessScreen h1 {
             font-size: 32px;
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px #000;
         }
-        #startScreen p, #gameOverScreen p {
+        #startScreen p, #gameOverScreen p, #gameSuccessScreen p {
             font-size: 14px;
             margin: 10px 0;
         }
         .btn {
-            margin-top: 30px;
+            margin-top: 20px;
             padding: 15px 30px;
             font-size: 16px;
             background: #ff6b6b;
@@ -64,7 +70,13 @@
             background: #ff8e8e;
             transform: scale(1.05);
         }
-        #gameOverScreen {
+        .btn-secondary {
+            background: #6b8cff;
+        }
+        .btn-secondary:hover {
+            background: #8ea8ff;
+        }
+        #gameOverScreen, #gameSuccessScreen {
             display: none;
         }
         .score-display {
@@ -76,10 +88,10 @@
             font-size: 18px;
             color: #87ceeb;
         }
-        .invincible-notice {
-            color: #ff69b4;
-            font-size: 12px;
-            margin-top: 10px;
+        .level-display {
+            font-size: 18px;
+            color: #98fb98;
+            margin: 10px 0;
         }
         #pauseBtn {
             position: absolute;
@@ -117,83 +129,288 @@
             font-size: 36px;
             margin-bottom: 30px;
         }
-        /* 모바일 터치 컨트롤 */
+        /* 터치 컨트롤 - 게임 화면 아래 */
         #touchControls {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
             display: flex;
             justify-content: space-between;
-            padding: 0 20px;
-            pointer-events: none;
+            width: 800px;
+            padding: 20px 40px;
+            margin-top: 20px;
         }
         .touch-btn {
-            width: 80px;
-            height: 80px;
-            font-size: 32px;
-            background: rgba(255, 255, 255, 0.3);
-            border: 3px solid rgba(255, 255, 255, 0.5);
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
             border-radius: 50%;
             color: white;
             cursor: pointer;
-            pointer-events: auto;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            transition: all 0.2s;
         }
         .touch-btn:active {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0.95);
+        }
+        /* 카드 갤러리 */
+        #galleryScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            border-radius: 8px;
+            z-index: 20;
+        }
+        #galleryScreen h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        .card-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 700px;
+        }
+        .card {
+            width: 120px;
+            height: 150px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+        .card-front {
+            background: linear-gradient(145deg, #4a90d9, #357abd);
+            border: 3px solid #5ca0e9;
+        }
+        .card-back {
+            background: linear-gradient(145deg, #d94a4a, #bd3535);
+            border: 3px solid #e95c5c;
+            transform: rotateY(180deg);
+        }
+        .card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .card-label {
+            margin-top: 8px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .card.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .card.locked .card-front {
+            background: linear-gradient(145deg, #444, #333);
+            border-color: #555;
+        }
+        /* 카드 확대 모달 */
+        #cardModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-card {
+            width: 280px;
+            height: 350px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .modal-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .modal-card.flipped .modal-card-inner {
+            transform: rotateY(180deg);
+        }
+        .modal-card-front, .modal-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-card-front {
+            background: linear-gradient(145deg, #4a90d9, #357abd);
+            border: 4px solid #5ca0e9;
+            box-shadow: 0 0 30px rgba(90, 160, 233, 0.5);
+        }
+        .modal-card-back {
+            background: linear-gradient(145deg, #d94a4a, #bd3535);
+            border: 4px solid #e95c5c;
+            box-shadow: 0 0 30px rgba(233, 92, 92, 0.5);
+            transform: rotateY(180deg);
+        }
+        .modal-card img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
+        .modal-card-label {
+            margin-top: 15px;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+        }
+        .modal-hint {
+            position: absolute;
+            bottom: 80px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+        .modal-close-hint {
+            position: absolute;
+            bottom: 40px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
         }
         @media (max-width: 820px) {
             #gameCanvas {
                 width: 100vw;
                 height: auto;
-                max-height: 80vh;
+                max-height: 70vh;
+            }
+            #touchControls {
+                width: 100vw;
+                padding: 15px 30px;
+            }
+            .touch-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
             }
             #pauseBtn {
                 padding: 8px 12px;
                 font-size: 12px;
             }
-            .touch-btn {
-                width: 70px;
-                height: 70px;
-                font-size: 28px;
+            .card {
+                width: 100px;
+                height: 130px;
+            }
+            .card img {
+                width: 60px;
+                height: 60px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="gameWrapper">
+        <div id="gameContainer">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-        <div id="startScreen">
-            <h1>🎮 Narumi Game 🎮</h1>
-            <p>← → 방향키 또는 터치로 이동</p>
-            <p>🪙 코인을 먹으면 점수 UP!</p>
-            <p>🌸 꽃을 먹으면 3초간 무적!</p>
-            <p>🪵 장애물을 피해요!</p>
-            <button class="btn" onclick="startGame()">게임 시작</button>
+            <div id="startScreen">
+                <h1>Narumi Game</h1>
+                <p>방향키 또는 터치로 이동</p>
+                <p>코인을 먹으면 점수 UP!</p>
+                <p>꽃을 먹으면 3초간 무적!</p>
+                <p>100점마다 레벨 UP!</p>
+                <p>레벨 3에서 100점을 모으면 성공!</p>
+                <button class="btn" onclick="startGame()">게임 시작</button>
+            </div>
+
+            <div id="gameOverScreen">
+                <h1>Game Over</h1>
+                <p class="score-display">점수: <span id="finalScore">0</span></p>
+                <p class="level-display">도달 레벨: <span id="finalLevel">0</span></p>
+                <p class="time-display">플레이 시간: <span id="finalTime">0</span>초</p>
+                <button class="btn" onclick="restartGame()">다시 시작</button>
+                <button class="btn btn-secondary" onclick="showGallery()">모은 나루미 보러가기</button>
+            </div>
+
+            <div id="gameSuccessScreen">
+                <h1>Game Clear!</h1>
+                <p class="score-display">최종 점수: <span id="successScore">0</span></p>
+                <p class="time-display">클리어 시간: <span id="successTime">0</span>초</p>
+                <button class="btn" onclick="restartGame()">다시 시작</button>
+                <button class="btn btn-secondary" onclick="showGallery()">모은 나루미 보러가기</button>
+            </div>
+
+            <div id="pauseScreen">
+                <h1>일시정지</h1>
+                <button class="btn" onclick="togglePause()">계속하기</button>
+            </div>
+
+            <div id="galleryScreen">
+                <h1>모은 나루미</h1>
+                <p style="margin-bottom: 20px; font-size: 12px;">카드를 클릭하면 크게 볼 수 있어요</p>
+                <div class="card-container" id="cardContainer"></div>
+                <button class="btn" onclick="hideGallery()">돌아가기</button>
+            </div>
+
+            <button id="pauseBtn" onclick="togglePause()" style="display: none;">일시정지</button>
         </div>
 
-        <div id="gameOverScreen">
-            <h1>💀 Game Over 💀</h1>
-            <p class="score-display">점수: <span id="finalScore">0</span></p>
-            <p class="time-display">플레이 시간: <span id="finalTime">0</span>초</p>
-            <button class="btn" onclick="restartGame()">다시 시작</button>
+        <!-- 카드 확대 모달 -->
+        <div id="cardModal" onclick="closeCardModal(event)">
+            <div class="modal-card" id="modalCard" onclick="event.stopPropagation(); toggleModalCard()">
+                <div class="modal-card-inner">
+                    <div class="modal-card-front">
+                        <img id="modalNarumiImg" src="" alt="Narumi">
+                        <div class="modal-card-label" id="modalNarumiLabel"></div>
+                    </div>
+                    <div class="modal-card-back">
+                        <img id="modalAttackImg" src="" alt="Attack">
+                        <div class="modal-card-label" id="modalAttackLabel"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="modal-hint">카드를 클릭하면 뒤집어집니다</p>
+            <p class="modal-close-hint">바깥을 클릭하면 닫힙니다</p>
         </div>
 
-        <div id="pauseScreen">
-            <h1>⏸️ 일시정지</h1>
-            <button class="btn" onclick="togglePause()">계속하기</button>
-        </div>
-
-        <button id="pauseBtn" onclick="togglePause()" style="display: none;">⏸️ 일시정지</button>
-
-        <!-- 모바일 터치 컨트롤 -->
-        <div id="touchControls" style="display: none;">
-            <button id="leftBtn" class="touch-btn touch-left">◀</button>
-            <button id="rightBtn" class="touch-btn touch-right">▶</button>
+        <!-- 터치 컨트롤 - 게임 화면 아래 -->
+        <div id="touchControls">
+            <button id="leftBtn" class="touch-btn">◀</button>
+            <button id="rightBtn" class="touch-btn">▶</button>
         </div>
     </div>
 
@@ -201,18 +418,30 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // 이미지 로드
+        // 레벨별 이미지 로드
+        const levelImages = {
+            narumi: [],
+            attack: []
+        };
+
+        // 레벨 0~3 이미지 로드
+        for (let i = 0; i <= 3; i++) {
+            const narumiImg = new Image();
+            const attackImg = new Image();
+            narumiImg.src = `narumi${i}.png`;
+            attackImg.src = `attack${i}.png`;
+            levelImages.narumi.push(narumiImg);
+            levelImages.attack.push(attackImg);
+        }
+
+        // 기타 이미지
         const images = {
-            narumi: new Image(),
-            attack: new Image(),
             background: new Image(),
             obstacle: new Image(),
             coin: new Image(),
             flower: new Image()
         };
 
-        images.narumi.src = 'narumi.png';
-        images.attack.src = 'attack.png';
         images.background.src = 'background.jpg';
         images.obstacle.src = 'obstacle.png';
         images.coin.src = 'coin.png';
@@ -223,6 +452,8 @@
             isRunning: false,
             isPaused: false,
             score: 0,
+            totalScore: 0,
+            level: 0,
             lives: 3,
             startTime: 0,
             playTime: 0,
@@ -230,10 +461,13 @@
             isInvincible: false,
             invincibleEndTime: 0,
             isHurt: false,
-            hurtEndTime: 0
+            hurtEndTime: 0,
+            levelUpEffect: false,
+            levelUpEndTime: 0,
+            unlockedLevels: [false, false, false, false] // 레벨 0~3 해금 상태
         };
 
-        // 플레이어 (원본 이미지 비율 유지)
+        // 플레이어
         const player = {
             x: 400,
             y: 480,
@@ -262,9 +496,6 @@
             if (e.key === 'ArrowLeft') keys.left = false;
             if (e.key === 'ArrowRight') keys.right = false;
         });
-
-        // 터치 컨트롤 항상 표시
-        document.getElementById('touchControls').style.display = 'flex';
 
         // 터치 이벤트 설정
         const leftBtn = document.getElementById('leftBtn');
@@ -317,11 +548,9 @@
                         const px = x + col * pixelSize;
                         const py = y + row * pixelSize;
 
-                        // fillAmount에 따라 색상 결정
                         if (fillAmount >= 1) {
                             ctx.fillStyle = '#ff4444';
                         } else if (fillAmount >= 0.5) {
-                            // 반쪽 하트
                             const halfPoint = x + (heartPattern[row].length / 2) * pixelSize;
                             if (px < halfPoint) {
                                 ctx.fillStyle = '#ff4444';
@@ -334,7 +563,6 @@
 
                         ctx.fillRect(px, py, pixelSize, pixelSize);
 
-                        // 테두리
                         ctx.strokeStyle = '#880000';
                         ctx.lineWidth = 0.5;
                         ctx.strokeRect(px, py, pixelSize, pixelSize);
@@ -366,12 +594,76 @@
             }
         }
 
+        // 레벨 진행 UI 그리기
+        function drawLevelProgress() {
+            const startX = 20;
+            const startY = 65;
+            const boxSize = 40;
+            const spacing = 50;
+
+            // 현재 레벨 텍스트
+            ctx.fillStyle = '#98fb98';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Lv.' + gameState.level, startX, startY);
+
+            // 레벨 아이콘들
+            for (let i = 0; i <= 3; i++) {
+                const x = startX + i * spacing;
+                const y = startY + 10;
+
+                // 배경 박스
+                if (i <= gameState.level) {
+                    ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
+                    ctx.strokeStyle = '#98fb98';
+                } else {
+                    ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+                    ctx.strokeStyle = '#666';
+                }
+                ctx.lineWidth = 2;
+                ctx.fillRect(x, y, boxSize, boxSize);
+                ctx.strokeRect(x, y, boxSize, boxSize);
+
+                // 나루미 아이콘
+                if (i <= gameState.level) {
+                    ctx.drawImage(levelImages.narumi[i], x + 4, y + 4, boxSize - 8, boxSize - 8);
+                } else {
+                    ctx.fillStyle = '#666';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('?', x + boxSize / 2, y + boxSize / 2 + 7);
+                }
+            }
+
+            // 현재 레벨 점수 프로그레스 바
+            const barX = startX;
+            const barY = startY + 60;
+            const barWidth = 180;
+            const barHeight = 12;
+            const progress = gameState.score / 100;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(barX, barY, barWidth * Math.min(progress, 1), barHeight);
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(gameState.score + '/100', barX + barWidth / 2, barY + 10);
+        }
+
         // 점수 그리기
         function drawScore() {
             ctx.fillStyle = '#ffd700';
-            ctx.font = 'bold 24px Arial';
+            ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'right';
-            ctx.fillText('점수: ' + gameState.score, canvas.width - 20, 85);
+            ctx.fillText('총점: ' + gameState.totalScore, canvas.width - 20, 85);
         }
 
         // 플레이 시간 그리기
@@ -380,9 +672,9 @@
             gameState.playTime = currentTime;
 
             ctx.fillStyle = '#87ceeb';
-            ctx.font = 'bold 18px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'right';
-            ctx.fillText('시간: ' + currentTime + '초', canvas.width - 20, 115);
+            ctx.fillText('시간: ' + currentTime + '초', canvas.width - 20, 110);
         }
 
         // 무적 상태 표시
@@ -396,7 +688,23 @@
             }
         }
 
-        // 오브젝트 생성 (비율 6:3.5:0.5)
+        // 레벨업 이펙트
+        function drawLevelUpEffect() {
+            if (gameState.levelUpEffect) {
+                const alpha = Math.sin((Date.now() - gameState.levelUpEndTime + 1500) / 150) * 0.5 + 0.5;
+                ctx.fillStyle = `rgba(255, 215, 0, ${alpha * 0.3})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('LEVEL UP!', canvas.width / 2, canvas.height / 2 - 50);
+                ctx.font = 'bold 32px Arial';
+                ctx.fillText('Lv.' + gameState.level, canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // 오브젝트 생성
         function spawnObject() {
             const rand = Math.random() * 10;
             let type;
@@ -438,6 +746,28 @@
                    playerHitbox.y + playerHitbox.height > obj.y;
         }
 
+        // 레벨업 체크
+        function checkLevelUp() {
+            if (gameState.score >= 100) {
+                if (gameState.level >= 3) {
+                    // 게임 클리어! 레벨 3도 해금
+                    gameState.unlockedLevels[3] = true;
+                    gameSuccess();
+                    return;
+                }
+                // 현재 레벨 해금
+                gameState.unlockedLevels[gameState.level] = true;
+                gameState.level++;
+                gameState.score = 0;
+                gameState.levelUpEffect = true;
+                gameState.levelUpEndTime = Date.now() + 1500;
+
+                setTimeout(() => {
+                    gameState.levelUpEffect = false;
+                }, 1500);
+            }
+        }
+
         // 게임 업데이트
         function update() {
             if (!gameState.isRunning || gameState.isPaused) return;
@@ -465,10 +795,11 @@
                 const obj = fallingObjects[i];
                 obj.y += obj.speed;
 
-                // 충돌 체크
                 if (checkCollision(obj)) {
                     if (obj.type === 'coin') {
                         gameState.score += 10;
+                        gameState.totalScore += 10;
+                        checkLevelUp();
                         fallingObjects.splice(i, 1);
                     } else if (obj.type === 'flower') {
                         gameState.isInvincible = true;
@@ -484,14 +815,14 @@
                             gameOver();
                         }
                     } else if (obj.type === 'obstacle' && gameState.isInvincible) {
-                        // 무적 상태에서는 장애물 파괴
                         fallingObjects.splice(i, 1);
                         gameState.score += 5;
+                        gameState.totalScore += 5;
+                        checkLevelUp();
                     }
                     continue;
                 }
 
-                // 화면 밖으로 나간 오브젝트 제거
                 if (obj.y > canvas.height) {
                     fallingObjects.splice(i, 1);
                 }
@@ -510,19 +841,17 @@
             });
 
             // 플레이어 그리기
-            let playerImg = images.narumi;
+            let playerImg = levelImages.narumi[gameState.level];
             if (gameState.isHurt) {
-                playerImg = images.attack;
+                playerImg = levelImages.attack[gameState.level];
             }
 
             // 무적 상태일 때 반짝이는 효과
             if (gameState.isInvincible) {
                 ctx.save();
-                // 황금빛 글로우 효과
                 ctx.shadowColor = '#ffd700';
                 ctx.shadowBlur = 20 + Math.sin(Date.now() / 100) * 10;
                 ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
-                // 추가 반짝임 오버레이
                 ctx.globalCompositeOperation = 'lighter';
                 ctx.globalAlpha = 0.3 + Math.sin(Date.now() / 150) * 0.2;
                 ctx.fillStyle = '#ffff00';
@@ -534,9 +863,11 @@
 
             // UI
             drawLives();
+            drawLevelProgress();
             drawScore();
             drawTime();
             drawInvincibleStatus();
+            drawLevelUpEffect();
         }
 
         // 게임 루프
@@ -548,9 +879,8 @@
                 update();
                 render();
 
-                // 오브젝트 스폰 (2배 빈도: 60 -> 30)
                 spawnTimer++;
-                if (spawnTimer > 30) {
+                if (spawnTimer > 15) {
                     spawnObject();
                     spawnTimer = 0;
                 }
@@ -568,20 +898,21 @@
             if (gameState.isPaused) {
                 gameState.pausedTime = Date.now();
                 document.getElementById('pauseScreen').style.display = 'flex';
-                document.getElementById('pauseBtn').textContent = '▶️ 계속';
+                document.getElementById('pauseBtn').textContent = '계속';
             } else {
-                // 일시정지된 시간만큼 startTime 조정
                 const pauseDuration = Date.now() - gameState.pausedTime;
                 gameState.startTime += pauseDuration;
-                // 무적 시간도 조정
                 if (gameState.isInvincible) {
                     gameState.invincibleEndTime += pauseDuration;
                 }
                 if (gameState.isHurt) {
                     gameState.hurtEndTime += pauseDuration;
                 }
+                if (gameState.levelUpEffect) {
+                    gameState.levelUpEndTime += pauseDuration;
+                }
                 document.getElementById('pauseScreen').style.display = 'none';
-                document.getElementById('pauseBtn').textContent = '⏸️ 일시정지';
+                document.getElementById('pauseBtn').textContent = '일시정지';
             }
         }
 
@@ -589,13 +920,17 @@
         function startGame() {
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('gameSuccessScreen').style.display = 'none';
             document.getElementById('pauseScreen').style.display = 'none';
+            document.getElementById('galleryScreen').style.display = 'none';
             document.getElementById('pauseBtn').style.display = 'block';
 
             gameState = {
                 isRunning: true,
                 isPaused: false,
                 score: 0,
+                totalScore: 0,
+                level: 0,
                 lives: 3,
                 startTime: Date.now(),
                 playTime: 0,
@@ -603,7 +938,10 @@
                 isInvincible: false,
                 invincibleEndTime: 0,
                 isHurt: false,
-                hurtEndTime: 0
+                hurtEndTime: 0,
+                levelUpEffect: false,
+                levelUpEndTime: 0,
+                unlockedLevels: [false, false, false, false]
             };
 
             player.x = canvas.width / 2 - player.width / 2;
@@ -617,9 +955,20 @@
         function gameOver() {
             gameState.isRunning = false;
 
-            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalScore').textContent = gameState.totalScore;
+            document.getElementById('finalLevel').textContent = gameState.level;
             document.getElementById('finalTime').textContent = gameState.playTime;
             document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('pauseBtn').style.display = 'none';
+        }
+
+        // 게임 성공
+        function gameSuccess() {
+            gameState.isRunning = false;
+
+            document.getElementById('successScore').textContent = gameState.totalScore;
+            document.getElementById('successTime').textContent = gameState.playTime;
+            document.getElementById('gameSuccessScreen').style.display = 'flex';
             document.getElementById('pauseBtn').style.display = 'none';
         }
 
@@ -628,18 +977,96 @@
             startGame();
         }
 
+        // 갤러리 표시
+        function showGallery() {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i <= 3; i++) {
+                // 레벨을 성공적으로 클리어한 경우에만 해금
+                const isUnlocked = gameState.unlockedLevels[i];
+
+                const card = document.createElement('div');
+                card.className = 'card' + (isUnlocked ? '' : ' locked');
+
+                if (isUnlocked) {
+                    card.onclick = () => openCardModal(i);
+                }
+
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <img src="${isUnlocked ? 'narumi' + i + '.png' : ''}" alt="Narumi ${i}">
+                            <div class="card-label">${isUnlocked ? 'Narumi Lv.' + i : '???'}</div>
+                        </div>
+                        <div class="card-back">
+                            <img src="${isUnlocked ? 'attack' + i + '.png' : ''}" alt="Attack ${i}">
+                            <div class="card-label">${isUnlocked ? 'Attack Lv.' + i : '???'}</div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            }
+
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('gameSuccessScreen').style.display = 'none';
+            document.getElementById('galleryScreen').style.display = 'flex';
+        }
+
+        // 갤러리 숨기기
+        function hideGallery() {
+            document.getElementById('galleryScreen').style.display = 'none';
+            if (gameState.lives <= 0) {
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            } else {
+                document.getElementById('gameSuccessScreen').style.display = 'flex';
+            }
+        }
+
+        // 카드 모달 열기
+        function openCardModal(level) {
+            document.getElementById('modalNarumiImg').src = 'narumi' + level + '.png';
+            document.getElementById('modalAttackImg').src = 'attack' + level + '.png';
+            document.getElementById('modalNarumiLabel').textContent = 'Narumi Lv.' + level;
+            document.getElementById('modalAttackLabel').textContent = 'Attack Lv.' + level;
+            document.getElementById('modalCard').classList.remove('flipped');
+            document.getElementById('cardModal').style.display = 'flex';
+        }
+
+        // 카드 모달 닫기
+        function closeCardModal(event) {
+            if (event.target === document.getElementById('cardModal')) {
+                document.getElementById('cardModal').style.display = 'none';
+            }
+        }
+
+        // 모달 카드 뒤집기
+        function toggleModalCard() {
+            document.getElementById('modalCard').classList.toggle('flipped');
+        }
+
         // 이미지 로드 완료 대기
         let loadedImages = 0;
-        const totalImages = Object.keys(images).length;
+        const totalImages = Object.keys(images).length + 8; // 기본 이미지 + 레벨별 나루미/어택 8개
+
+        function onImageLoad() {
+            loadedImages++;
+            if (loadedImages === totalImages) {
+                ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+            }
+        }
 
         Object.values(images).forEach(img => {
-            img.onload = () => {
-                loadedImages++;
-                if (loadedImages === totalImages) {
-                    // 초기 화면 렌더링
-                    ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
-                }
-            };
+            img.onload = onImageLoad;
+        });
+
+        levelImages.narumi.forEach(img => {
+            img.onload = onImageLoad;
+        });
+
+        levelImages.attack.forEach(img => {
+            img.onload = onImageLoad;
         });
     </script>
 </body>
