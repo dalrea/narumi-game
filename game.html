@@ -561,6 +561,88 @@
         rightBtn.addEventListener('mouseup', () => keys.right = false);
         rightBtn.addEventListener('mouseleave', () => keys.right = false);
 
+        // 드래그 앤 드롭 상태
+        let isDragging = false;
+        let dragOffsetX = 0;
+
+        // 캔버스 좌표 계산 (리사이즈 대응)
+        function getCanvasCoords(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        // 플레이어 영역 내 클릭 확인
+        function isInsidePlayer(x, y) {
+            return x >= player.x && x <= player.x + player.width &&
+                   y >= player.y && y <= player.y + player.height;
+        }
+
+        // 마우스 드래그 이벤트
+        canvas.addEventListener('mousedown', (e) => {
+            if (!gameState.isRunning || gameState.isPaused) return;
+            const coords = getCanvasCoords(e.clientX, e.clientY);
+            if (isInsidePlayer(coords.x, coords.y)) {
+                isDragging = true;
+                dragOffsetX = coords.x - player.x;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const coords = getCanvasCoords(e.clientX, e.clientY);
+            let newX = coords.x - dragOffsetX;
+            // 캔버스 경계 제한
+            newX = Math.max(0, Math.min(canvas.width - player.width, newX));
+            player.x = newX;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+
+        // 터치 드래그 이벤트
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameState.isRunning || gameState.isPaused) return;
+            const touch = e.touches[0];
+            const coords = getCanvasCoords(touch.clientX, touch.clientY);
+            if (isInsidePlayer(coords.x, coords.y)) {
+                isDragging = true;
+                dragOffsetX = coords.x - player.x;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const coords = getCanvasCoords(touch.clientX, touch.clientY);
+            let newX = coords.x - dragOffsetX;
+            // 캔버스 경계 제한
+            newX = Math.max(0, Math.min(canvas.width - player.width, newX));
+            player.x = newX;
+            e.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('touchcancel', () => {
+            isDragging = false;
+        });
+
         // 도트 스타일 하트 그리기
         function drawPixelHeart(x, y, size, fillAmount) {
             const pixelSize = size / 8;
