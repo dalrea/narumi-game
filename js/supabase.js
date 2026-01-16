@@ -11,34 +11,12 @@ let supabaseClient = null;
 async function initSupabase() {
     if (supabaseClient) return supabaseClient;
 
-    // Supabase JS 라이브러리 동적 로드
-    if (!window.supabase) {
-        await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js';
-            script.onload = () => {
-                console.log('Supabase library loaded', window.supabase);
-                resolve();
-            };
-            script.onerror = (e) => {
-                console.error('Failed to load Supabase library', e);
-                reject(e);
-            };
-            document.head.appendChild(script);
-        });
-
-        // 라이브러리 로드 후 잠시 대기
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    // window.supabase 확인
+    // window.supabase 확인 (HTML에서 CDN으로 로드됨)
     if (!window.supabase || !window.supabase.createClient) {
-        console.error('window.supabase:', window.supabase);
-        throw new Error('Supabase 라이브러리를 로드할 수 없습니다.');
+        throw new Error('Supabase 라이브러리가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
     }
 
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase client created');
     return supabaseClient;
 }
 
