@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Flappy Bird</title>
+    <title>Flappy Bird - Simsim Games</title>
     <style>
         * {
             margin: 0;
@@ -42,6 +42,7 @@
             background: rgba(0, 0, 0, 0.7);
             color: white;
             border-radius: 8px;
+            overflow-y: auto;
         }
         .overlay h1 {
             font-size: 48px;
@@ -58,7 +59,7 @@
             margin: 20px 0;
         }
         .btn {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 15px 40px;
             font-size: 20px;
             background: #ff6b6b;
@@ -80,6 +81,10 @@
         .btn-secondary:hover {
             background: #6ee0d8;
         }
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
         #startScreen {
             display: flex;
         }
@@ -96,6 +101,97 @@
             color: #ffd700;
             margin-top: 10px;
         }
+        /* 랭킹 스타일 */
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            width: 90%;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .leaderboard h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-align: center;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .leaderboard-item:nth-child(2) {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
+        }
+        .leaderboard-item:nth-child(3) {
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.3), transparent);
+        }
+        .leaderboard-item:nth-child(4) {
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.3), transparent);
+        }
+        .leaderboard-item .rank {
+            width: 25px;
+            font-weight: bold;
+        }
+        .leaderboard-item .name {
+            flex: 1;
+            text-align: left;
+            margin-left: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .leaderboard-item .score {
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .leaderboard-item.me {
+            background: rgba(78, 205, 196, 0.3);
+            border: 1px solid #4ecdc4;
+        }
+        .login-prompt {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 10px;
+        }
+        .login-prompt a {
+            color: #4ecdc4;
+        }
+        .user-info-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            z-index: 10;
+        }
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .saving-indicator {
+            font-size: 12px;
+            color: #4ecdc4;
+            margin-top: 5px;
+        }
         @media (max-width: 420px) {
             #gameCanvas {
                 width: 100vw;
@@ -110,6 +206,9 @@
                 padding: 12px 30px;
                 font-size: 16px;
             }
+            .leaderboard {
+                max-height: 150px;
+            }
         }
     </style>
 </head>
@@ -117,19 +216,43 @@
     <div id="gameWrapper">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
 
+        <!-- 유저 정보 바 -->
+        <div class="user-info-bar" id="userInfoBar" style="display: none;">
+            <div class="user-avatar" id="gameUserAvatar">?</div>
+            <span id="gameUserName">게스트</span>
+        </div>
+
         <div id="startScreen" class="overlay">
             <h1>Flappy Bird</h1>
             <p>파이프 사이를 날아가세요!</p>
             <p class="instructions">스페이스바 / 클릭 / 터치로 점프</p>
             <p class="high-score" id="startHighScore"></p>
+
+            <!-- 랭킹 -->
+            <div class="leaderboard" id="startLeaderboard">
+                <h3>🏆 TOP 5</h3>
+                <div id="startRankingList">로딩 중...</div>
+            </div>
+
             <button class="btn" onclick="startGame()">게임 시작</button>
             <a href="../index.html" class="btn btn-secondary">홈으로</a>
+            <p class="login-prompt" id="loginPrompt">
+                <a href="../auth.html">로그인</a>하면 점수가 저장됩니다!
+            </p>
         </div>
 
         <div id="gameOverScreen" class="overlay">
             <h1>Game Over</h1>
             <p class="score-display">점수: <span id="finalScore">0</span></p>
             <p class="high-score" id="highScoreText"></p>
+            <p class="saving-indicator" id="savingIndicator"></p>
+
+            <!-- 랭킹 -->
+            <div class="leaderboard" id="gameOverLeaderboard">
+                <h3>🏆 TOP 5</h3>
+                <div id="gameOverRankingList">로딩 중...</div>
+            </div>
+
             <div>
                 <button class="btn" onclick="startGame()">다시 시작</button>
                 <a href="../index.html" class="btn btn-secondary">홈으로</a>
@@ -137,9 +260,11 @@
         </div>
     </div>
 
+    <script src="../js/supabase.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const GAME_ID = 'flappy';
 
         // 게임 상태
         let gameState = {
@@ -147,6 +272,9 @@
             score: 0,
             highScore: parseInt(localStorage.getItem('flappyHighScore')) || 0
         };
+
+        // 현재 유저
+        let currentUser = null;
 
         // 새
         const bird = {
@@ -175,35 +303,106 @@
         // 배경 스크롤
         let groundOffset = 0;
 
+        // 유저 정보 업데이트
+        async function updateUserInfo() {
+            currentUser = await getCurrentUser();
+            const userInfoBar = document.getElementById('userInfoBar');
+            const loginPrompt = document.getElementById('loginPrompt');
+
+            if (currentUser) {
+                const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+                document.getElementById('gameUserName').textContent = nickname;
+                document.getElementById('gameUserAvatar').textContent = nickname.charAt(0).toUpperCase();
+                userInfoBar.style.display = 'flex';
+                loginPrompt.style.display = 'none';
+
+                // 서버에서 내 최고 점수 가져오기
+                try {
+                    const serverHighScore = await getMyHighScore(GAME_ID);
+                    if (serverHighScore > gameState.highScore) {
+                        gameState.highScore = serverHighScore;
+                        localStorage.setItem('flappyHighScore', serverHighScore);
+                    }
+                } catch (e) {
+                    console.log('최고 점수 로드 실패:', e);
+                }
+            } else {
+                userInfoBar.style.display = 'none';
+                loginPrompt.style.display = 'block';
+            }
+            updateHighScoreDisplay();
+        }
+
+        // 랭킹 로드
+        async function loadLeaderboard(containerId) {
+            const container = document.getElementById(containerId);
+            try {
+                const rankings = await getLeaderboard(GAME_ID, 5);
+
+                if (rankings.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">아직 기록이 없습니다</p>';
+                    return;
+                }
+
+                let html = '';
+                rankings.forEach((item, index) => {
+                    const isMe = currentUser && item.user_id === currentUser.id;
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                    html += `
+                        <div class="leaderboard-item ${isMe ? 'me' : ''}">
+                            <span class="rank">${medal}</span>
+                            <span class="name">${item.nickname}</span>
+                            <span class="score">${item.score}</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                console.log('랭킹 로드 실패:', e);
+                container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">랭킹을 불러올 수 없습니다</p>';
+            }
+        }
+
+        // 점수 저장
+        async function saveGameScore(score) {
+            if (!currentUser) return;
+
+            const indicator = document.getElementById('savingIndicator');
+            indicator.textContent = '점수 저장 중...';
+
+            try {
+                await saveScore(GAME_ID, score);
+                indicator.textContent = '✓ 점수가 저장되었습니다!';
+            } catch (e) {
+                console.log('점수 저장 실패:', e);
+                indicator.textContent = '점수 저장 실패';
+            }
+        }
+
         // 최고 점수 표시
         function updateHighScoreDisplay() {
             document.getElementById('startHighScore').textContent =
-                gameState.highScore > 0 ? `최고 점수: ${gameState.highScore}` : '';
+                gameState.highScore > 0 ? `내 최고 점수: ${gameState.highScore}` : '';
         }
-        updateHighScoreDisplay();
 
         // 새 그리기
         function drawBird() {
             ctx.save();
             ctx.translate(bird.x + bird.width / 2, bird.y + bird.height / 2);
 
-            // 속도에 따른 회전
             bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity * 0.05));
             ctx.rotate(bird.rotation);
 
-            // 몸통
             ctx.fillStyle = '#f7dc6f';
             ctx.beginPath();
             ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 배
             ctx.fillStyle = '#fdeaa8';
             ctx.beginPath();
             ctx.ellipse(5, 5, bird.width / 3, bird.height / 3, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 눈
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(10, -5, 8, 0, Math.PI * 2);
@@ -214,7 +413,6 @@
             ctx.arc(12, -5, 4, 0, Math.PI * 2);
             ctx.fill();
 
-            // 부리
             ctx.fillStyle = '#e74c3c';
             ctx.beginPath();
             ctx.moveTo(15, 0);
@@ -223,7 +421,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // 날개
             ctx.fillStyle = '#f0b90b';
             ctx.beginPath();
             ctx.ellipse(-5, 5, 10, 6, Math.PI / 6, 0, Math.PI * 2);
@@ -239,21 +436,17 @@
             gradient.addColorStop(0.5, '#8ed142');
             gradient.addColorStop(1, '#73bf2e');
 
-            // 위쪽 파이프
             ctx.fillStyle = gradient;
             ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
 
-            // 위쪽 파이프 끝부분
             ctx.fillStyle = '#5a9c24';
             ctx.fillRect(pipe.x - 5, pipe.topHeight - 30, pipeWidth + 10, 30);
             ctx.fillStyle = '#8ed142';
             ctx.fillRect(pipe.x - 5, pipe.topHeight - 30, pipeWidth + 10, 5);
 
-            // 아래쪽 파이프
             ctx.fillStyle = gradient;
             ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
 
-            // 아래쪽 파이프 끝부분
             ctx.fillStyle = '#5a9c24';
             ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 30);
             ctx.fillStyle = '#8ed142';
@@ -262,24 +455,20 @@
 
         // 배경 그리기
         function drawBackground() {
-            // 하늘
             const skyGradient = ctx.createLinearGradient(0, 0, 0, ground.y);
             skyGradient.addColorStop(0, '#4ec0ca');
             skyGradient.addColorStop(1, '#7ed6df');
             ctx.fillStyle = skyGradient;
             ctx.fillRect(0, 0, canvas.width, ground.y);
 
-            // 구름
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             drawCloud(50, 80, 60);
             drawCloud(200, 150, 40);
             drawCloud(320, 60, 50);
 
-            // 땅
             ctx.fillStyle = '#dee894';
             ctx.fillRect(0, ground.y, canvas.width, ground.height);
 
-            // 풀 패턴
             ctx.fillStyle = '#c4d66e';
             for (let i = 0; i < canvas.width + 20; i += 20) {
                 const offset = (groundOffset + i) % (canvas.width + 20);
@@ -291,7 +480,6 @@
             }
         }
 
-        // 구름 그리기
         function drawCloud(x, y, size) {
             ctx.beginPath();
             ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
@@ -301,7 +489,6 @@
             ctx.fill();
         }
 
-        // 점수 그리기
         function drawScore() {
             ctx.fillStyle = 'white';
             ctx.strokeStyle = '#543847';
@@ -312,7 +499,6 @@
             ctx.fillText(gameState.score, canvas.width / 2, 60);
         }
 
-        // 파이프 생성
         function spawnPipe() {
             const minHeight = 80;
             const maxHeight = ground.y - pipeGap - minHeight;
@@ -326,19 +512,10 @@
             });
         }
 
-        // 충돌 감지
         function checkCollision() {
-            // 땅 충돌
-            if (bird.y + bird.height > ground.y) {
-                return true;
-            }
+            if (bird.y + bird.height > ground.y) return true;
+            if (bird.y < 0) return true;
 
-            // 천장 충돌
-            if (bird.y < 0) {
-                return true;
-            }
-
-            // 파이프 충돌
             for (const pipe of pipes) {
                 if (bird.x + bird.width > pipe.x && bird.x < pipe.x + pipeWidth) {
                     if (bird.y < pipe.topHeight || bird.y + bird.height > pipe.bottomY) {
@@ -346,56 +523,44 @@
                     }
                 }
             }
-
             return false;
         }
 
-        // 게임 업데이트
         function update() {
             if (!gameState.isRunning) return;
 
-            // 새 물리
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
 
-            // 파이프 이동
             for (let i = pipes.length - 1; i >= 0; i--) {
                 pipes[i].x -= pipeSpeed;
 
-                // 점수 계산
                 if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
                     pipes[i].passed = true;
                     gameState.score++;
                 }
 
-                // 화면 밖 파이프 제거
                 if (pipes[i].x + pipeWidth < 0) {
                     pipes.splice(i, 1);
                 }
             }
 
-            // 땅 스크롤
             groundOffset = (groundOffset + pipeSpeed) % 20;
 
-            // 충돌 체크
             if (checkCollision()) {
                 gameOver();
             }
         }
 
-        // 렌더링
         function render() {
             drawBackground();
-
             for (const pipe of pipes) {
                 drawPipe(pipe);
             }
-
             drawBird();
             drawScore();
         }
 
-        // 게임 루프
         let pipeTimer = 0;
         function gameLoop() {
             if (!gameState.isRunning) return;
@@ -412,16 +577,15 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // 점프
         function jump() {
             if (!gameState.isRunning) return;
             bird.velocity = bird.jump;
         }
 
-        // 게임 시작
         function startGame() {
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('savingIndicator').textContent = '';
 
             gameState = {
                 isRunning: true,
@@ -438,22 +602,29 @@
             gameLoop();
         }
 
-        // 게임 오버
-        function gameOver() {
+        async function gameOver() {
             gameState.isRunning = false;
 
             // 최고 점수 갱신
             if (gameState.score > gameState.highScore) {
                 gameState.highScore = gameState.score;
                 localStorage.setItem('flappyHighScore', gameState.highScore);
-                document.getElementById('highScoreText').textContent = '새로운 최고 기록!';
+                document.getElementById('highScoreText').textContent = '🎉 새로운 최고 기록!';
             } else {
-                document.getElementById('highScoreText').textContent = `최고 점수: ${gameState.highScore}`;
+                document.getElementById('highScoreText').textContent = `내 최고 점수: ${gameState.highScore}`;
             }
 
             document.getElementById('finalScore').textContent = gameState.score;
             document.getElementById('gameOverScreen').style.display = 'flex';
             updateHighScoreDisplay();
+
+            // 서버에 점수 저장
+            if (currentUser && gameState.score > 0) {
+                await saveGameScore(gameState.score);
+            }
+
+            // 랭킹 새로고침
+            await loadLeaderboard('gameOverRankingList');
         }
 
         // 이벤트 리스너
@@ -470,9 +641,15 @@
             jump();
         });
 
-        // 초기 화면
-        drawBackground();
-        drawBird();
+        // 초기화
+        async function init() {
+            await updateUserInfo();
+            await loadLeaderboard('startRankingList');
+            drawBackground();
+            drawBird();
+        }
+
+        init();
     </script>
 </body>
 </html>

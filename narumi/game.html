@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Narumi - 장애물 피하기 게임</title>
+    <title>Narumi - Simsim Games</title>
     <style>
         * {
             margin: 0;
@@ -345,6 +345,106 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px rgba(90, 160, 233, 0.5);
         }
+        /* 랭킹 스타일 */
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            width: 90%;
+            max-width: 350px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .leaderboard h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-align: center;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-radius: 5px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .leaderboard-item:nth-child(2) {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
+        }
+        .leaderboard-item:nth-child(3) {
+            background: linear-gradient(90deg, rgba(192, 192, 192, 0.3), transparent);
+        }
+        .leaderboard-item:nth-child(4) {
+            background: linear-gradient(90deg, rgba(205, 127, 50, 0.3), transparent);
+        }
+        .leaderboard-item .rank {
+            width: 25px;
+            font-weight: bold;
+        }
+        .leaderboard-item .name {
+            flex: 1;
+            text-align: left;
+            margin-left: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .leaderboard-item .score {
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .leaderboard-item.me {
+            background: rgba(107, 140, 255, 0.3);
+            border: 1px solid #6b8cff;
+        }
+        .login-prompt {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 10px;
+        }
+        .login-prompt a {
+            color: #6b8cff;
+        }
+        .user-info-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            z-index: 10;
+        }
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #6b8cff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .saving-indicator {
+            font-size: 11px;
+            color: #6b8cff;
+            margin-top: 5px;
+        }
+        .home-link {
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .home-link:hover {
+            color: white;
+        }
         @media (max-width: 820px) {
             #gameCanvas {
                 width: 100vw;
@@ -380,6 +480,12 @@
         <div id="gameContainer">
             <canvas id="gameCanvas" width="800" height="600"></canvas>
 
+            <!-- 유저 정보 바 -->
+            <div class="user-info-bar" id="userInfoBar" style="display: none;">
+                <div class="user-avatar" id="gameUserAvatar">?</div>
+                <span id="gameUserName">게스트</span>
+            </div>
+
             <div id="startScreen">
                 <h1>Narumi Game</h1>
                 <p>방향키 또는 터치로 이동</p>
@@ -387,7 +493,18 @@
                 <p>꽃을 먹으면 3초간 무적!</p>
                 <p>100점마다 레벨 UP!</p>
                 <p>레벨 3에서 100점을 모으면 성공!</p>
+
+                <!-- 랭킹 -->
+                <div class="leaderboard" id="startLeaderboard">
+                    <h3>🏆 TOP 5</h3>
+                    <div id="startRankingList">로딩 중...</div>
+                </div>
+
                 <button class="btn" onclick="startGame()">게임 시작</button>
+                <a href="../index.html" class="home-link">← 홈으로</a>
+                <p class="login-prompt" id="loginPrompt">
+                    <a href="../auth.html">로그인</a>하면 점수가 저장됩니다!
+                </p>
             </div>
 
             <div id="gameOverScreen">
@@ -395,16 +512,34 @@
                 <p class="score-display">점수: <span id="finalScore">0</span></p>
                 <p class="level-display">도달 레벨: <span id="finalLevel">0</span></p>
                 <p class="time-display">플레이 시간: <span id="finalTime">0</span>초</p>
+                <p class="saving-indicator" id="savingIndicatorOver"></p>
+
+                <!-- 랭킹 -->
+                <div class="leaderboard">
+                    <h3>🏆 TOP 5</h3>
+                    <div id="gameOverRankingList">로딩 중...</div>
+                </div>
+
                 <button class="btn" onclick="restartGame()">다시 시작</button>
                 <button class="btn btn-secondary" onclick="showGallery()">모은 나루미 보러가기</button>
+                <a href="../index.html" class="home-link">← 홈으로</a>
             </div>
 
             <div id="gameSuccessScreen">
                 <h1>Game Clear!</h1>
                 <p class="score-display">최종 점수: <span id="successScore">0</span></p>
                 <p class="time-display">클리어 시간: <span id="successTime">0</span>초</p>
+                <p class="saving-indicator" id="savingIndicatorSuccess"></p>
+
+                <!-- 랭킹 -->
+                <div class="leaderboard">
+                    <h3>🏆 TOP 5</h3>
+                    <div id="successRankingList">로딩 중...</div>
+                </div>
+
                 <button class="btn" onclick="restartGame()">다시 시작</button>
                 <button class="btn btn-secondary" onclick="showGallery()">모은 나루미 보러가기</button>
+                <a href="../index.html" class="home-link">← 홈으로</a>
             </div>
 
             <div id="pauseScreen">
@@ -448,9 +583,78 @@
         </div>
     </div>
 
+    <script src="../js/supabase.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const GAME_ID = 'narumi';
+
+        // 현재 유저
+        let currentUser = null;
+
+        // 유저 정보 업데이트
+        async function updateUserInfo() {
+            currentUser = await getCurrentUser();
+            const userInfoBar = document.getElementById('userInfoBar');
+            const loginPrompt = document.getElementById('loginPrompt');
+
+            if (currentUser) {
+                const nickname = currentUser.user_metadata?.nickname || currentUser.email.split('@')[0];
+                document.getElementById('gameUserName').textContent = nickname;
+                document.getElementById('gameUserAvatar').textContent = nickname.charAt(0).toUpperCase();
+                userInfoBar.style.display = 'flex';
+                loginPrompt.style.display = 'none';
+            } else {
+                userInfoBar.style.display = 'none';
+                loginPrompt.style.display = 'block';
+            }
+        }
+
+        // 랭킹 로드
+        async function loadLeaderboard(containerId) {
+            const container = document.getElementById(containerId);
+            try {
+                const rankings = await getLeaderboard(GAME_ID, 5);
+
+                if (rankings.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">아직 기록이 없습니다</p>';
+                    return;
+                }
+
+                let html = '';
+                rankings.forEach((item, index) => {
+                    const isMe = currentUser && item.user_id === currentUser.id;
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                    html += `
+                        <div class="leaderboard-item ${isMe ? 'me' : ''}">
+                            <span class="rank">${medal}</span>
+                            <span class="name">${item.nickname}</span>
+                            <span class="score">${item.score}</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                console.log('랭킹 로드 실패:', e);
+                container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5);">랭킹을 불러올 수 없습니다</p>';
+            }
+        }
+
+        // 점수 저장
+        async function saveGameScore(score, indicatorId) {
+            if (!currentUser || score <= 0) return;
+
+            const indicator = document.getElementById(indicatorId);
+            indicator.textContent = '점수 저장 중...';
+
+            try {
+                await saveScore(GAME_ID, score);
+                indicator.textContent = '✓ 점수가 저장되었습니다!';
+            } catch (e) {
+                console.log('점수 저장 실패:', e);
+                indicator.textContent = '점수 저장 실패';
+            }
+        }
 
         // 레벨별 이미지 로드
         const levelImages = {
@@ -1068,7 +1272,7 @@
         }
 
         // 게임 오버
-        function gameOver() {
+        async function gameOver() {
             gameState.isRunning = false;
 
             document.getElementById('finalScore').textContent = gameState.totalScore;
@@ -1076,16 +1280,28 @@
             document.getElementById('finalTime').textContent = gameState.playTime;
             document.getElementById('gameOverScreen').style.display = 'flex';
             document.getElementById('pauseBtn').style.display = 'none';
+
+            // 점수 저장 및 랭킹 로드
+            if (currentUser && gameState.totalScore > 0) {
+                await saveGameScore(gameState.totalScore, 'savingIndicatorOver');
+            }
+            await loadLeaderboard('gameOverRankingList');
         }
 
         // 게임 성공
-        function gameSuccess() {
+        async function gameSuccess() {
             gameState.isRunning = false;
 
             document.getElementById('successScore').textContent = gameState.totalScore;
             document.getElementById('successTime').textContent = gameState.playTime;
             document.getElementById('gameSuccessScreen').style.display = 'flex';
             document.getElementById('pauseBtn').style.display = 'none';
+
+            // 점수 저장 및 랭킹 로드
+            if (currentUser && gameState.totalScore > 0) {
+                await saveGameScore(gameState.totalScore, 'savingIndicatorSuccess');
+            }
+            await loadLeaderboard('successRankingList');
         }
 
         // 재시작
@@ -1222,6 +1438,14 @@
         levelImages.attack.forEach(img => {
             img.onload = onImageLoad;
         });
+
+        // 초기화
+        async function init() {
+            await updateUserInfo();
+            await loadLeaderboard('startRankingList');
+        }
+
+        init();
     </script>
 </body>
 </html>
