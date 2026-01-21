@@ -934,21 +934,21 @@
             for (const [id, action] of Object.entries(buttons)) {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    // Touch events
+                    // Mouse events for PC
+                    btn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        action();
+                    });
+
+                    // Touch events for mobile
                     btn.addEventListener('touchstart', (e) => {
                         e.preventDefault();
                         action();
                     }, { passive: false });
-
-                    // Click for non-touch devices
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        action();
-                    });
                 }
             }
 
-            // Auto-repeat for directional buttons
+            // Auto-repeat for directional buttons (both mouse and touch)
             let repeatInterval = null;
             const repeatButtons = {
                 'btnLeft': moveLeft,
@@ -959,17 +959,33 @@
             for (const [id, action] of Object.entries(repeatButtons)) {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    btn.addEventListener('touchstart', () => {
+                    // Mouse hold for PC
+                    btn.addEventListener('mousedown', () => {
                         repeatInterval = setInterval(action, 100);
-                    }, { passive: true });
-
-                    btn.addEventListener('touchend', () => {
+                    });
+                    btn.addEventListener('mouseup', () => {
+                        if (repeatInterval) {
+                            clearInterval(repeatInterval);
+                            repeatInterval = null;
+                        }
+                    });
+                    btn.addEventListener('mouseleave', () => {
                         if (repeatInterval) {
                             clearInterval(repeatInterval);
                             repeatInterval = null;
                         }
                     });
 
+                    // Touch hold for mobile
+                    btn.addEventListener('touchstart', () => {
+                        repeatInterval = setInterval(action, 100);
+                    }, { passive: true });
+                    btn.addEventListener('touchend', () => {
+                        if (repeatInterval) {
+                            clearInterval(repeatInterval);
+                            repeatInterval = null;
+                        }
+                    });
                     btn.addEventListener('touchcancel', () => {
                         if (repeatInterval) {
                             clearInterval(repeatInterval);
