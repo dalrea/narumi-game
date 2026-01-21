@@ -284,10 +284,10 @@
 
         // 게임 설정
         const CANVAS_WIDTH = 350;
-        const CANVAS_HEIGHT = 500;
+        const CANVAS_HEIGHT = 450;
         const GRAVITY = 0.3;
         const BOUNCE = 0.3;
-        const FRICTION = 0.99;
+        const FRICTION = 0.95;
         const DROP_ZONE_HEIGHT = 60;
         const BASE_SIZE = 36;      // 시작 크기
         const SIZE_INCREMENT = 18; // 크기 증가량
@@ -401,7 +401,8 @@
                 level,
                 size,
                 merged: false,
-                dropTime: Date.now()
+                dropTime: Date.now(),
+                fromMerge: false
             };
         }
 
@@ -454,7 +455,9 @@
             score += (newLevel + 1) * 10;
             document.getElementById('score').textContent = score;
 
-            return createMetamon(newX, newY, newLevel);
+            const merged = createMetamon(newX, newY, newLevel);
+            merged.fromMerge = true; // 합체로 생성됨
+            return merged;
         }
 
         // 물리 업데이트
@@ -541,11 +544,14 @@
             // 합체된 메타몽 제거
             metamons = metamons.filter(m => !m.merged);
 
-            // 게임오버 체크 - 드롭 후 1초 지난 메타몽이 드롭존 위로 넘치면 게임오버
+            // 게임오버 체크 - 드롭존 위로 넘치면 게임오버
+            // 드롭 직후 1초는 예외, 합체로 생긴 메타몽은 바로 체크
             const now = Date.now();
             for (const m of metamons) {
                 const radius = m.size / 2;
-                if (now - m.dropTime > 1000 && m.y - radius < DROP_ZONE_HEIGHT) {
+                const timePassed = now - m.dropTime;
+                const canCheck = m.fromMerge || timePassed > 1000;
+                if (canCheck && m.y - radius < DROP_ZONE_HEIGHT) {
                     endGame();
                     break;
                 }
