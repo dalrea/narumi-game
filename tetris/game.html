@@ -229,9 +229,6 @@
             width: 100%;
             max-width: 280px;
         }
-        .desktop-hide .mobile-controls {
-            display: none;
-        }
         .mobile-row {
             display: flex;
             justify-content: center;
@@ -948,11 +945,15 @@
 
             for (const [id, config] of Object.entries(buttons)) {
                 const btn = document.getElementById(id);
-                if (!btn) continue;
+                if (!btn) {
+                    console.log('Button not found:', id);
+                    continue;
+                }
 
                 const handleStart = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('Button pressed:', id);
                     config.action();
                     if (config.repeat) {
                         clearRepeat();
@@ -962,6 +963,7 @@
 
                 const handleEnd = (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     clearRepeat();
                 };
 
@@ -970,10 +972,10 @@
                 btn.addEventListener('touchend', handleEnd, { passive: false });
                 btn.addEventListener('touchcancel', handleEnd, { passive: false });
 
-                // Mouse events
+                // Mouse events (for desktop testing)
                 btn.addEventListener('mousedown', handleStart);
                 btn.addEventListener('mouseup', handleEnd);
-                btn.addEventListener('mouseleave', clearRepeat);
+                btn.addEventListener('mouseleave', handleEnd);
             }
         }
 
