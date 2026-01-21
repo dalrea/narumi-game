@@ -541,11 +541,11 @@
             // 합체된 메타몽 제거
             metamons = metamons.filter(m => !m.merged);
 
-            // 게임오버 체크 (위쪽 넘침) - 드롭 후 2초 지난 메타몽만 체크
+            // 게임오버 체크 - 드롭 후 1초 지난 메타몽이 드롭존 위로 넘치면 게임오버
             const now = Date.now();
             for (const m of metamons) {
                 const radius = m.size / 2;
-                if (now - m.dropTime > 2000 && m.y - radius < DROP_ZONE_HEIGHT && Math.abs(m.vy) < 1) {
+                if (now - m.dropTime > 1000 && m.y - radius < DROP_ZONE_HEIGHT) {
                     endGame();
                     break;
                 }
