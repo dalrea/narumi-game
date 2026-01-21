@@ -107,19 +107,38 @@ async function getMyHighScore(gameId) {
     return data?.score || 0;
 }
 
-// 랭킹 가져오기 (상위 10명)
+// 랭킹 가져오기 (사용자당 최고 점수만, 상위 N명)
 async function getLeaderboard(gameId, limit = 10) {
     const client = await initSupabase();
 
+    // 더 많은 데이터를 가져온 후 사용자별 최고 점수만 필터링
     const { data, error } = await client
         .from('scores')
-        .select('nickname, score, created_at')
+        .select('user_id, nickname, score, created_at')
         .eq('game_id', gameId)
         .order('score', { ascending: false })
-        .limit(limit);
+        .limit(limit * 10); // 충분한 데이터 확보
 
     if (error) throw error;
-    return data || [];
+    if (!data) return [];
+
+    // 사용자별 최고 점수만 추출
+    const userBestScores = new Map();
+    for (const record of data) {
+        const key = record.user_id;
+        if (!userBestScores.has(key) || userBestScores.get(key).score < record.score) {
+            userBestScores.set(key, {
+                nickname: record.nickname,
+                score: record.score,
+                created_at: record.created_at
+            });
+        }
+    }
+
+    // Map을 배열로 변환하고 점수순 정렬 후 limit 적용
+    return Array.from(userBestScores.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
 }
 
 // 인증 상태 변경 리스너
