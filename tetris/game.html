@@ -990,14 +990,10 @@
                 const btn = document.getElementById(id);
                 if (!btn) continue;
 
-                const handleClick = (e) => {
+                btn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    e.stopPropagation();
                     action();
-                };
-
-                btn.addEventListener('touchstart', handleClick, { passive: false });
-                btn.addEventListener('mousedown', handleClick);
+                });
             }
         }
 
