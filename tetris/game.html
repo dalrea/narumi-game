@@ -262,7 +262,7 @@
             background: rgba(231, 76, 60, 0.3);
         }
         .mobile-score-bar {
-            display: none;
+            display: flex;
             justify-content: space-around;
             width: 100%;
             max-width: 320px;
@@ -276,58 +276,11 @@
         .mobile-score-bar b {
             color: #4ecdc4;
         }
-        @media (max-width: 600px) {
-            .mobile-score-bar {
-                display: flex;
-            }
-            body {
-                padding: 5px;
-                justify-content: flex-start;
-            }
-            #gameWrapper {
-                flex-direction: column;
-                align-items: center;
-            }
-            .side-panel {
-                display: none;
-            }
-            #gameCanvas {
-                width: 100%;
-                max-width: 300px;
-                height: auto;
-                aspect-ratio: 1/2;
-            }
-            .overlay h1 {
-                font-size: 28px;
-            }
-            .overlay p {
-                font-size: 14px;
-            }
-            .controls {
-                display: none;
-            }
-            .mobile-controls {
-                margin-top: 5px;
-                gap: 5px;
-                padding: 5px;
-            }
-            .mobile-row {
-                gap: 8px;
-            }
-            .mobile-btn {
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
-            }
-            .mobile-btn#btnDown {
-                width: 120px;
-            }
-            .user-info-bar {
-                top: 5px;
-                left: 5px;
-                padding: 3px 8px;
-                font-size: 10px;
-            }
+        .side-panel {
+            display: none !important;
+        }
+        .controls {
+            display: none;
         }
     </style>
 </head>
