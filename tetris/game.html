@@ -219,30 +219,44 @@
         }
         .mobile-controls {
             display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .mobile-row {
+            display: flex;
+            justify-content: center;
             gap: 10px;
-            margin-top: 15px;
         }
         .mobile-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 65px;
+            height: 65px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             color: white;
-            font-size: 24px;
+            font-size: 26px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+            touch-action: manipulation;
         }
         .mobile-btn:active {
-            background: rgba(78, 205, 196, 0.4);
+            background: rgba(78, 205, 196, 0.6);
             border-color: #4ecdc4;
+            transform: scale(0.95);
         }
         .mobile-btn.rotate-btn {
-            background: rgba(78, 205, 196, 0.2);
+            background: rgba(78, 205, 196, 0.3);
+        }
+        .mobile-btn.drop-btn {
+            background: rgba(231, 76, 60, 0.3);
         }
         @media (max-width: 600px) {
             #gameWrapper {
@@ -353,11 +367,19 @@
     </div>
 
     <div class="mobile-controls" id="mobileControls">
-        <button class="mobile-btn" ontouchstart="moveLeft()" onclick="moveLeft()">&#x2190;</button>
-        <button class="mobile-btn rotate-btn" ontouchstart="rotate()" onclick="rotate()">&#x21BB;</button>
-        <button class="mobile-btn" ontouchstart="moveRight()" onclick="moveRight()">&#x2192;</button>
-        <button class="mobile-btn" ontouchstart="softDrop()" onclick="softDrop()">&#x2193;</button>
-        <button class="mobile-btn" ontouchstart="hardDrop()" onclick="hardDrop()">&#x25BC;</button>
+        <div class="mobile-row">
+            <button class="mobile-btn rotate-btn" id="btnRotateCCW">↺</button>
+            <button class="mobile-btn" id="btnUp">▲</button>
+            <button class="mobile-btn rotate-btn" id="btnRotateCW">↻</button>
+        </div>
+        <div class="mobile-row">
+            <button class="mobile-btn" id="btnLeft">◀</button>
+            <button class="mobile-btn drop-btn" id="btnDrop">⬇</button>
+            <button class="mobile-btn" id="btnRight">▶</button>
+        </div>
+        <div class="mobile-row">
+            <button class="mobile-btn" id="btnDown" style="width: 140px;">▼ Down</button>
+        </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
@@ -902,12 +924,74 @@
             if (gameRunning) e.preventDefault();
         }, { passive: false });
 
+        // Mobile button controls
+        function setupMobileControls() {
+            const buttons = {
+                'btnLeft': moveLeft,
+                'btnRight': moveRight,
+                'btnUp': () => rotate(1),
+                'btnDown': softDrop,
+                'btnDrop': hardDrop,
+                'btnRotateCW': () => rotate(1),
+                'btnRotateCCW': () => rotate(-1)
+            };
+
+            for (const [id, action] of Object.entries(buttons)) {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    // Touch events
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        action();
+                    }, { passive: false });
+
+                    // Click for non-touch devices
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        action();
+                    });
+                }
+            }
+
+            // Auto-repeat for directional buttons
+            let repeatInterval = null;
+            const repeatButtons = {
+                'btnLeft': moveLeft,
+                'btnRight': moveRight,
+                'btnDown': softDrop
+            };
+
+            for (const [id, action] of Object.entries(repeatButtons)) {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('touchstart', () => {
+                        repeatInterval = setInterval(action, 100);
+                    }, { passive: true });
+
+                    btn.addEventListener('touchend', () => {
+                        if (repeatInterval) {
+                            clearInterval(repeatInterval);
+                            repeatInterval = null;
+                        }
+                    });
+
+                    btn.addEventListener('touchcancel', () => {
+                        if (repeatInterval) {
+                            clearInterval(repeatInterval);
+                            repeatInterval = null;
+                        }
+                    });
+                }
+            }
+        }
+
         // Initialize
         async function init() {
             await updateUserInfo();
             await loadLeaderboard('startRankingList');
             drawBoard();
             drawNextPiece();
+            setupMobileControls();
         }
 
         init();
