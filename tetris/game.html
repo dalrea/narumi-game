@@ -32,8 +32,8 @@
             border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             background: #000;
-            width: 240px;
-            height: 480px;
+            width: 200px;
+            height: 400px;
         }
         .side-panel {
             display: flex;
@@ -238,13 +238,13 @@
             gap: 8px;
         }
         .mobile-btn {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.4);
             color: white;
-            font-size: 22px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -375,7 +375,7 @@
             <button class="mobile-btn" id="btnRight">▶</button>
         </div>
         <div class="mobile-row">
-            <button class="mobile-btn" id="btnDown" style="width: 120px;">▼ Down</button>
+            <button class="mobile-btn" id="btnDown" style="width: 100px;">▼ Down</button>
         </div>
     </div>
 
@@ -928,77 +928,52 @@
         // Mobile button controls
         function setupMobileControls() {
             const buttons = {
-                'btnLeft': moveLeft,
-                'btnRight': moveRight,
-                'btnUp': () => rotate(1),
-                'btnDown': softDrop,
-                'btnDrop': hardDrop,
-                'btnRotateCW': () => rotate(1),
-                'btnRotateCCW': () => rotate(-1)
+                'btnLeft': { action: moveLeft, repeat: true },
+                'btnRight': { action: moveRight, repeat: true },
+                'btnUp': { action: () => rotate(1), repeat: false },
+                'btnDown': { action: softDrop, repeat: true },
+                'btnDrop': { action: hardDrop, repeat: false },
+                'btnRotateCW': { action: () => rotate(1), repeat: false },
+                'btnRotateCCW': { action: () => rotate(-1), repeat: false }
             };
 
-            for (const [id, action] of Object.entries(buttons)) {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    // Mouse events for PC
-                    btn.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        action();
-                    });
-
-                    // Touch events for mobile
-                    btn.addEventListener('touchstart', (e) => {
-                        e.preventDefault();
-                        action();
-                    }, { passive: false });
-                }
-            }
-
-            // Auto-repeat for directional buttons (both mouse and touch)
             let repeatInterval = null;
-            const repeatButtons = {
-                'btnLeft': moveLeft,
-                'btnRight': moveRight,
-                'btnDown': softDrop
+
+            const clearRepeat = () => {
+                if (repeatInterval) {
+                    clearInterval(repeatInterval);
+                    repeatInterval = null;
+                }
             };
 
-            for (const [id, action] of Object.entries(repeatButtons)) {
+            for (const [id, config] of Object.entries(buttons)) {
                 const btn = document.getElementById(id);
-                if (btn) {
-                    // Mouse hold for PC
-                    btn.addEventListener('mousedown', () => {
-                        repeatInterval = setInterval(action, 100);
-                    });
-                    btn.addEventListener('mouseup', () => {
-                        if (repeatInterval) {
-                            clearInterval(repeatInterval);
-                            repeatInterval = null;
-                        }
-                    });
-                    btn.addEventListener('mouseleave', () => {
-                        if (repeatInterval) {
-                            clearInterval(repeatInterval);
-                            repeatInterval = null;
-                        }
-                    });
+                if (!btn) continue;
 
-                    // Touch hold for mobile
-                    btn.addEventListener('touchstart', () => {
-                        repeatInterval = setInterval(action, 100);
-                    }, { passive: true });
-                    btn.addEventListener('touchend', () => {
-                        if (repeatInterval) {
-                            clearInterval(repeatInterval);
-                            repeatInterval = null;
-                        }
-                    });
-                    btn.addEventListener('touchcancel', () => {
-                        if (repeatInterval) {
-                            clearInterval(repeatInterval);
-                            repeatInterval = null;
-                        }
-                    });
-                }
+                const handleStart = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    config.action();
+                    if (config.repeat) {
+                        clearRepeat();
+                        repeatInterval = setInterval(config.action, 80);
+                    }
+                };
+
+                const handleEnd = (e) => {
+                    e.preventDefault();
+                    clearRepeat();
+                };
+
+                // Touch events
+                btn.addEventListener('touchstart', handleStart, { passive: false });
+                btn.addEventListener('touchend', handleEnd, { passive: false });
+                btn.addEventListener('touchcancel', handleEnd, { passive: false });
+
+                // Mouse events
+                btn.addEventListener('mousedown', handleStart);
+                btn.addEventListener('mouseup', handleEnd);
+                btn.addEventListener('mouseleave', clearRepeat);
             }
         }
 

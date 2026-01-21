@@ -221,6 +221,7 @@
     <div class="tabs">
         <button class="tab active" onclick="showRanking('narumi')">Narumi Game</button>
         <button class="tab" onclick="showRanking('flappy')">Flappy Bird</button>
+        <button class="tab" onclick="showRanking('tetris')">Tetris</button>
     </div>
 
     <div class="ranking-container">
@@ -242,7 +243,8 @@
     <script>
         const gameInfo = {
             narumi: { title: 'Narumi Game', icon: '🎮' },
-            flappy: { title: 'Flappy Bird', icon: '🐦' }
+            flappy: { title: 'Flappy Bird', icon: '🐦' },
+            tetris: { title: 'Tetris', icon: '🧱' }
         };
 
         let currentGame = 'narumi';
@@ -273,7 +275,7 @@
             // 탭 업데이트
             document.querySelectorAll('.tab').forEach((tab, i) => {
                 tab.classList.toggle('active',
-                    (gameId === 'narumi' && i === 0) || (gameId === 'flappy' && i === 1)
+                    (gameId === 'narumi' && i === 0) || (gameId === 'flappy' && i === 1) || (gameId === 'tetris' && i === 2)
                 );
             });
 
