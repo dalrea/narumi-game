@@ -222,6 +222,7 @@
         <button class="tab active" onclick="showRanking('narumi')">Narumi Game</button>
         <button class="tab" onclick="showRanking('flappy')">Flappy Bird</button>
         <button class="tab" onclick="showRanking('tetris')">Tetris</button>
+        <button class="tab" onclick="showRanking('monster-collection')">Monster Maze</button>
     </div>
 
     <div class="ranking-container">
@@ -242,9 +243,10 @@
     <script src="js/supabase.js"></script>
     <script>
         const gameInfo = {
-            narumi: { title: 'Narumi Game', icon: '🎮' },
-            flappy: { title: 'Flappy Bird', icon: '🐦' },
-            tetris: { title: 'Tetris', icon: '🧱' }
+            narumi: { title: 'Narumi Game', icon: '🎮', scoreLabel: '점' },
+            flappy: { title: 'Flappy Bird', icon: '🐦', scoreLabel: '점' },
+            tetris: { title: 'Tetris', icon: '🧱', scoreLabel: '점' },
+            'monster-collection': { title: 'Monster Maze', icon: '🐾', scoreLabel: '마리' }
         };
 
         let currentGame = 'narumi';
@@ -273,10 +275,9 @@
             currentGame = gameId;
 
             // 탭 업데이트
+            const gameIds = ['narumi', 'flappy', 'tetris', 'monster-collection'];
             document.querySelectorAll('.tab').forEach((tab, i) => {
-                tab.classList.toggle('active',
-                    (gameId === 'narumi' && i === 0) || (gameId === 'flappy' && i === 1) || (gameId === 'tetris' && i === 2)
-                );
+                tab.classList.toggle('active', gameId === gameIds[i]);
             });
 
             // 헤더 업데이트
@@ -296,6 +297,7 @@
                     return;
                 }
 
+                const scoreLabel = info.scoreLabel || '점';
                 rankingList.innerHTML = scores.map((score, index) => {
                     const rankClass = getRankClass(index);
                     return `
@@ -305,7 +307,7 @@
                                 <div class="player-name">${score.nickname}</div>
                                 <div class="play-date">${formatDate(score.created_at)}</div>
                             </div>
-                            <div class="player-score">${score.score.toLocaleString()}</div>
+                            <div class="player-score">${score.score.toLocaleString()}${scoreLabel}</div>
                         </li>
                     `;
                 }).join('');
