@@ -223,6 +223,7 @@
         <button class="tab" onclick="showRanking('flappy')">Flappy Bird</button>
         <button class="tab" onclick="showRanking('tetris')">Tetris</button>
         <button class="tab" onclick="showRanking('monster-collection')">Monster Maze</button>
+        <button class="tab" onclick="showRanking('metamon-merge')">메타몽 머지</button>
     </div>
 
     <div class="ranking-container">
@@ -246,7 +247,8 @@
             narumi: { title: 'Narumi Game', icon: '🎮', scoreLabel: '점' },
             flappy: { title: 'Flappy Bird', icon: '🐦', scoreLabel: '점' },
             tetris: { title: 'Tetris', icon: '🧱', scoreLabel: '점' },
-            'monster-collection': { title: 'Monster Maze', icon: '🐾', scoreLabel: '마리' }
+            'monster-collection': { title: 'Monster Maze', icon: '🐾', scoreLabel: '마리' },
+            'metamon-merge': { title: '메타몽 머지', icon: '🟣', scoreLabel: '점' }
         };
 
         let currentGame = 'narumi';
@@ -275,7 +277,7 @@
             currentGame = gameId;
 
             // 탭 업데이트
-            const gameIds = ['narumi', 'flappy', 'tetris', 'monster-collection'];
+            const gameIds = ['narumi', 'flappy', 'tetris', 'monster-collection', 'metamon-merge'];
             document.querySelectorAll('.tab').forEach((tab, i) => {
                 tab.classList.toggle('active', gameId === gameIds[i]);
             });

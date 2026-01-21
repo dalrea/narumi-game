@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>메타몽 머지 - Simsim Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body {
+            min-height: 100vh;
+            background: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+        .header {
+            width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .back-btn {
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .score-area {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .score {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .score span {
+            color: #9b59b6;
+        }
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+        #gameCanvas {
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            background: #fff;
+            touch-action: none;
+        }
+        .next-metamon {
+            margin: 10px 0;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .next-metamon span {
+            color: #666;
+            font-size: 14px;
+        }
+        .next-metamon img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-pokedex {
+            background: #9b59b6;
+            color: white;
+        }
+        .btn-pokedex:hover {
+            background: #8e44ad;
+        }
+        .btn-restart {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-restart:hover {
+            background: #c0392b;
+        }
+        /* 게임오버 오버레이 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .overlay.hidden {
+            display: none;
+        }
+        .overlay h2 {
+            color: #fff;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .overlay .final-score {
+            color: #9b59b6;
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .overlay .btn {
+            margin: 5px;
+        }
+        /* 도감 모달 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 200;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal.hidden {
+            display: none;
+        }
+        .modal h2 {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .pokedex-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .pokedex-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .pokedex-item.collected {
+            border-color: #9b59b6;
+            background: rgba(155, 89, 182, 0.2);
+        }
+        .pokedex-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        .pokedex-item.locked img {
+            filter: brightness(0);
+            opacity: 0.3;
+        }
+        .pokedex-item .name {
+            color: #fff;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .pokedex-progress {
+            color: #9b59b6;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 450px) {
+            .header {
+                padding: 8px 10px;
+            }
+            .score {
+                font-size: 14px;
+            }
+            .back-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .pokedex-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="../index.html" class="back-btn">← 돌아가기</a>
+        <div class="score-area">
+            <div class="score">점수: <span id="score">0</span></div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="next-metamon">
+            <span>다음:</span>
+            <img id="nextMetamon" src="" alt="Next">
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="buttons">
+            <button class="btn btn-pokedex" onclick="showPokedex()">도감</button>
+            <button class="btn btn-restart" onclick="restartGame()">다시하기</button>
+        </div>
+    </div>
+
+    <!-- 게임오버 오버레이 -->
+    <div class="overlay hidden" id="gameOverOverlay">
+        <h2>Game Over!</h2>
+        <div class="final-score" id="finalScore">0</div>
+        <div>
+            <button class="btn btn-pokedex" onclick="showPokedex()">도감 보기</button>
+            <button class="btn btn-restart" onclick="restartGame()">다시하기</button>
+        </div>
+    </div>
+
+    <!-- 도감 모달 -->
+    <div class="modal hidden" id="pokedexModal">
+        <button class="close-btn" onclick="hidePokedex()">×</button>
+        <h2>메타몽 도감</h2>
+        <div class="pokedex-progress" id="pokedexProgress">수집: 0 / 12</div>
+        <div class="pokedex-grid" id="pokedexGrid"></div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        // 메타몽 레벨: 0 ~ 11 (총 12종)
+        const MAX_LEVEL = 11;
+        const DROP_MAX_LEVEL = 2; // 드롭 가능 범위: 0, 1, 2
+
+        // 게임 설정
+        const CANVAS_WIDTH = 350;
+        const CANVAS_HEIGHT = 500;
+        const GRAVITY = 0.3;
+        const BOUNCE = 0.3;
+        const FRICTION = 0.99;
+        const DROP_ZONE_HEIGHT = 60;
+        const BASE_SIZE = 36;      // 시작 크기
+        const SIZE_INCREMENT = 18; // 크기 증가량
+
+        // 게임 상태
+        let canvas, ctx;
+        let score = 0;
+        let gameOver = false;
+        let metamons = [];
+        let nextLevel = 0;
+        let dropX = CANVAS_WIDTH / 2;
+        let canDrop = true;
+        let pokedex = {}; // { '0': true, '1': true, ... }
+        let images = {};
+        let imagesLoaded = 0;
+        let particles = []; // 반짝이 파티클
+
+        // 파티클 생성 (합체 효과)
+        function createMergeParticles(x, y, size) {
+            const colors = ['#FFD700', '#FFF', '#FF69B4', '#87CEEB', '#98FB98'];
+            const count = 12;
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 / count) * i;
+                const speed = 2 + Math.random() * 3;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1.0, // 1.0 ~ 0.0
+                    decay: 0.02 + Math.random() * 0.02
+                });
+            }
+        }
+
+        // 파티클 업데이트
+        function updateParticles() {
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.1; // 약간의 중력
+                p.life -= p.decay;
+            });
+            particles = particles.filter(p => p.life > 0);
+        }
+
+        // 파티클 렌더링
+        function renderParticles() {
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 이미지 로드
+        function loadImages() {
+            return new Promise((resolve) => {
+                for (let i = 0; i <= MAX_LEVEL; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        images[i] = img;
+                        imagesLoaded++;
+                        if (imagesLoaded === MAX_LEVEL + 1) resolve();
+                    };
+                    img.onerror = () => {
+                        imagesLoaded++;
+                        if (imagesLoaded === MAX_LEVEL + 1) resolve();
+                    };
+                    img.src = `assets/${i}.png`;
+                }
+            });
+        }
+
+        // 도감 로드
+        function loadPokedex() {
+            const saved = localStorage.getItem('metamon_merge_pokedex');
+            if (saved) {
+                pokedex = JSON.parse(saved);
+            }
+        }
+
+        // 도감 저장
+        function savePokedex() {
+            localStorage.setItem('metamon_merge_pokedex', JSON.stringify(pokedex));
+        }
+
+        // 메타몽 크기 계산
+        function getMetamonSize(level) {
+            return BASE_SIZE + level * SIZE_INCREMENT;
+        }
+
+        // 메타몽 객체 생성
+        function createMetamon(x, y, level, vx = 0, vy = 0) {
+            const size = getMetamonSize(level);
+
+            // 도감에 추가
+            if (!pokedex[level]) {
+                pokedex[level] = true;
+                savePokedex();
+            }
+
+            return {
+                x, y,
+                vx, vy,
+                level,
+                size,
+                merged: false,
+                dropTime: Date.now()
+            };
+        }
+
+        // 다음 메타몽 설정 (0~2 범위)
+        function setNextMetamon() {
+            nextLevel = Math.floor(Math.random() * (DROP_MAX_LEVEL + 1));
+            document.getElementById('nextMetamon').src = `assets/${nextLevel}.png`;
+        }
+
+        // 메타몽 드롭
+        function dropMetamon(x) {
+            if (!canDrop || gameOver) return;
+
+            canDrop = false;
+            const metamon = createMetamon(x, DROP_ZONE_HEIGHT, nextLevel);
+            metamons.push(metamon);
+
+            setNextMetamon();
+
+            setTimeout(() => {
+                canDrop = true;
+            }, 500);
+        }
+
+        // 충돌 감지 (원형)
+        function checkCollision(m1, m2) {
+            const dx = m1.x - m2.x;
+            const dy = m1.y - m2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minDist = (m1.size + m2.size) / 2;
+            return dist < minDist;
+        }
+
+        // 메타몽 합체
+        function mergeMetamon(m1, m2) {
+            const newLevel = m1.level + 1;
+
+            // 최대 레벨 체크
+            if (newLevel > MAX_LEVEL) {
+                return null;
+            }
+
+            const newX = (m1.x + m2.x) / 2;
+            const newY = (m1.y + m2.y) / 2;
+
+            // 반짝이 효과 생성
+            createMergeParticles(newX, newY, m1.size);
+
+            // 점수 추가 (레벨에 따라 증가)
+            score += (newLevel + 1) * 10;
+            document.getElementById('score').textContent = score;
+
+            return createMetamon(newX, newY, newLevel);
+        }
+
+        // 물리 업데이트
+        function updatePhysics() {
+            if (gameOver) return;
+
+            // 중력 및 이동
+            metamons.forEach(m => {
+                m.vy += GRAVITY;
+                m.vx *= FRICTION;
+                m.x += m.vx;
+                m.y += m.vy;
+
+                const radius = m.size / 2;
+
+                // 바닥 충돌
+                if (m.y + radius > CANVAS_HEIGHT) {
+                    m.y = CANVAS_HEIGHT - radius;
+                    m.vy *= -BOUNCE;
+                    if (Math.abs(m.vy) < 0.5) m.vy = 0;
+                }
+
+                // 벽 충돌
+                if (m.x - radius < 0) {
+                    m.x = radius;
+                    m.vx *= -BOUNCE;
+                }
+                if (m.x + radius > CANVAS_WIDTH) {
+                    m.x = CANVAS_WIDTH - radius;
+                    m.vx *= -BOUNCE;
+                }
+            });
+
+            // 메타몽 간 충돌 및 합체
+            for (let i = 0; i < metamons.length; i++) {
+                for (let j = i + 1; j < metamons.length; j++) {
+                    const m1 = metamons[i];
+                    const m2 = metamons[j];
+
+                    if (m1.merged || m2.merged) continue;
+
+                    if (checkCollision(m1, m2)) {
+                        // 같은 레벨이면 합체
+                        if (m1.level === m2.level) {
+                            const merged = mergeMetamon(m1, m2);
+                            if (merged) {
+                                m1.merged = true;
+                                m2.merged = true;
+                                metamons.push(merged);
+                            }
+                        } else {
+                            // 다른 레벨이면 밀어내기
+                            const dx = m2.x - m1.x;
+                            const dy = m2.y - m1.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                            const minDist = (m1.size + m2.size) / 2;
+                            const overlap = minDist - dist;
+
+                            if (overlap > 0) {
+                                const nx = dx / dist;
+                                const ny = dy / dist;
+                                const push = overlap / 2;
+
+                                m1.x -= nx * push;
+                                m1.y -= ny * push;
+                                m2.x += nx * push;
+                                m2.y += ny * push;
+
+                                // 속도 교환
+                                const relVx = m1.vx - m2.vx;
+                                const relVy = m1.vy - m2.vy;
+                                const impulse = (relVx * nx + relVy * ny) * 0.5;
+
+                                m1.vx -= impulse * nx;
+                                m1.vy -= impulse * ny;
+                                m2.vx += impulse * nx;
+                                m2.vy += impulse * ny;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 합체된 메타몽 제거
+            metamons = metamons.filter(m => !m.merged);
+
+            // 게임오버 체크 (위쪽 넘침) - 드롭 후 2초 지난 메타몽만 체크
+            const now = Date.now();
+            for (const m of metamons) {
+                const radius = m.size / 2;
+                if (now - m.dropTime > 2000 && m.y - radius < DROP_ZONE_HEIGHT && Math.abs(m.vy) < 1) {
+                    endGame();
+                    break;
+                }
+            }
+        }
+
+        // 렌더링
+        function render() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // 드롭 존 라인
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, DROP_ZONE_HEIGHT);
+            ctx.lineTo(CANVAS_WIDTH, DROP_ZONE_HEIGHT);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 드롭 위치 표시
+            if (canDrop && !gameOver) {
+                ctx.fillStyle = 'rgba(155, 89, 182, 0.2)';
+                ctx.beginPath();
+                ctx.arc(dropX, DROP_ZONE_HEIGHT / 2, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 메타몽 그리기 (원본 비율 유지, size 기준으로 fit)
+            metamons.forEach(m => {
+                const img = images[m.level];
+                if (img && img.complete) {
+                    const imgW = img.naturalWidth;
+                    const imgH = img.naturalHeight;
+                    let drawW, drawH;
+
+                    // size를 기준으로 이미지가 들어가도록 (비율 유지)
+                    if (imgW >= imgH) {
+                        // 가로가 길거나 정사각형 - 가로를 size에 맞춤
+                        drawW = m.size;
+                        drawH = m.size * (imgH / imgW);
+                    } else {
+                        // 세로가 긴 이미지 - 세로를 size에 맞춤
+                        drawH = m.size;
+                        drawW = m.size * (imgW / imgH);
+                    }
+
+                    ctx.drawImage(img, m.x - drawW / 2, m.y - drawH / 2, drawW, drawH);
+                } else {
+                    // 이미지 없으면 원으로 대체
+                    ctx.fillStyle = '#9b59b6';
+                    ctx.beginPath();
+                    ctx.arc(m.x, m.y, m.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // 게임 루프
+        function gameLoop() {
+            updatePhysics();
+            updateParticles();
+            render();
+            renderParticles();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 게임 종료
+        async function endGame() {
+            if (gameOver) return;
+            gameOver = true;
+
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
+
+            // 점수 저장
+            try {
+                await saveScore('metamon-merge', score);
+            } catch (e) {
+                console.log('점수 저장 실패:', e);
+            }
+        }
+
+        // 게임 재시작
+        function restartGame() {
+            score = 0;
+            gameOver = false;
+            metamons = [];
+            canDrop = true;
+
+            document.getElementById('score').textContent = '0';
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+
+            setNextMetamon();
+        }
+
+        // 도감 표시
+        function showPokedex() {
+            const grid = document.getElementById('pokedexGrid');
+            grid.innerHTML = '';
+
+            let collected = 0;
+
+            for (let i = 0; i <= MAX_LEVEL; i++) {
+                const isCollected = pokedex[i];
+                if (isCollected) collected++;
+
+                const item = document.createElement('div');
+                item.className = `pokedex-item ${isCollected ? 'collected' : 'locked'}`;
+                item.innerHTML = `
+                    <img src="assets/${i}.png" alt="메타몽 ${i}">
+                    <div class="name">${isCollected ? `Lv.${i}` : '???'}</div>
+                `;
+                grid.appendChild(item);
+            }
+
+            document.getElementById('pokedexProgress').textContent = `수집: ${collected} / ${MAX_LEVEL + 1}`;
+            document.getElementById('pokedexModal').classList.remove('hidden');
+        }
+
+        // 도감 숨기기
+        function hidePokedex() {
+            document.getElementById('pokedexModal').classList.add('hidden');
+        }
+
+        // 입력 처리
+        function handleInput(x) {
+            const rect = canvas.getBoundingClientRect();
+            dropX = Math.max(30, Math.min(CANVAS_WIDTH - 30, x - rect.left));
+        }
+
+        // 초기화
+        async function init() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+
+            // 이미지 로드 및 크롭
+            await loadImages();
+
+            // 도감 로드
+            loadPokedex();
+
+            // 이벤트 리스너
+            canvas.addEventListener('mousemove', (e) => handleInput(e.clientX));
+            canvas.addEventListener('click', (e) => {
+                handleInput(e.clientX);
+                dropMetamon(dropX);
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                handleInput(e.touches[0].clientX);
+            });
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                dropMetamon(dropX);
+            });
+
+            // 첫 메타몽 설정
+            setNextMetamon();
+
+            // 게임 시작
+            gameLoop();
+        }
+
+        init();
+    </script>
+</body>
+</html>
