@@ -102,6 +102,13 @@
             background: #0a0a1a;
             touch-action: none;
             max-width: 100%;
+            max-height: 60vh;
+        }
+        .maze-wrapper {
+            overflow: auto;
+            max-height: 60vh;
+            border-radius: 10px;
+            background: #0a0a1a;
         }
 
         /* Game screens */
@@ -610,7 +617,9 @@
                     <span id="pokeballCount">0</span>
                 </div>
             </div>
-            <canvas id="mazeCanvas" width="360" height="360"></canvas>
+            <div class="maze-wrapper">
+                <canvas id="mazeCanvas" width="360" height="360"></canvas>
+            </div>
             <p class="controls-hint">Arrow keys or swipe to move | Collect 🔴 before exit!</p>
             <div class="mobile-controls show" id="mobileControls">
                 <button class="control-btn control-up" onclick="movePlayer(0, -1)">↑</button>
@@ -733,13 +742,13 @@
             { id: 30, name: "Floranis", icon: "🌸", type: "grass", rarity: "legendary", catchRate: 3, desc: "The legendary nature guardian." }
         ];
 
-        // Maze size thresholds based on collection count
+        // Maze size thresholds based on collection count (doubled sizes)
         const SIZE_THRESHOLDS = [
-            { count: 0, baseSize: 9 },
-            { count: 5, baseSize: 11 },
-            { count: 10, baseSize: 13 },
-            { count: 15, baseSize: 15 },
-            { count: 25, baseSize: 17 }
+            { count: 0, baseSize: 17 },
+            { count: 5, baseSize: 21 },
+            { count: 10, baseSize: 25 },
+            { count: 15, baseSize: 29 },
+            { count: 25, baseSize: 33 }
         ];
 
         // Game state
@@ -864,14 +873,14 @@
             return orderedMonsters[indexInCycle];
         }
 
-        // Maze Generation (Recursive Backtracking)
+        // Maze Generation with multiple paths (removes dead ends)
         function generateMaze() {
             // Get base size from collection thresholds
             const baseSize = getBaseMazeSize();
 
             // Add complexity based on stage (smaller increments)
             const stageBonus = Math.floor((currentStage - 1) / 10) * 2;
-            mazeSize = Math.min(baseSize + stageBonus, 21);
+            mazeSize = Math.min(baseSize + stageBonus, 41);
             if (mazeSize % 2 === 0) mazeSize++;
 
             // Initialize maze with walls
@@ -904,6 +913,43 @@
 
             carve(1, 1);
 
+            // Add extra passages to create multiple paths (remove some walls)
+            // This ensures there are alternative routes to reach items
+            const extraPassages = Math.floor(mazeSize * mazeSize * 0.08); // 8% extra openings
+            let added = 0;
+            let attempts = 0;
+            const maxAttempts = extraPassages * 10;
+
+            while (added < extraPassages && attempts < maxAttempts) {
+                attempts++;
+                // Pick a random wall (not on the edge)
+                const x = Math.floor(Math.random() * (mazeSize - 4)) + 2;
+                const y = Math.floor(Math.random() * (mazeSize - 4)) + 2;
+
+                if (maze[y][x] === 1) {
+                    // Check if this wall separates two path cells
+                    const neighbors = [
+                        { dx: 0, dy: -1 },
+                        { dx: 0, dy: 1 },
+                        { dx: -1, dy: 0 },
+                        { dx: 1, dy: 0 }
+                    ];
+
+                    let pathCount = 0;
+                    for (const n of neighbors) {
+                        if (maze[y + n.dy] && maze[y + n.dy][x + n.dx] === 0) {
+                            pathCount++;
+                        }
+                    }
+
+                    // Only remove wall if it connects exactly 2 path cells (creates a loop)
+                    if (pathCount >= 2) {
+                        maze[y][x] = 0;
+                        added++;
+                    }
+                }
+            }
+
             // Set player start and exit
             player = { x: 1, y: 1 };
             exit = { x: mazeSize - 2, y: mazeSize - 2 };
@@ -912,8 +958,10 @@
             // Place items
             placeItems();
 
-            // Adjust canvas size
-            cellSize = Math.floor(360 / mazeSize);
+            // Adjust canvas size - scale to fit screen
+            const maxCanvasSize = 450;
+            cellSize = Math.floor(maxCanvasSize / mazeSize);
+            cellSize = Math.max(cellSize, 12); // Minimum cell size
             canvas.width = mazeSize * cellSize;
             canvas.height = mazeSize * cellSize;
         }
@@ -922,13 +970,13 @@
         function placeItems() {
             items = [];
 
-            // Get all valid path positions (excluding start and exit)
+            // Get all valid path positions (excluding start and exit area)
             const validPositions = [];
             for (let y = 0; y < mazeSize; y++) {
                 for (let x = 0; x < mazeSize; x++) {
                     if (maze[y][x] === 0 &&
-                        !(x === 1 && y === 1) &&
-                        !(x === exit.x && y === exit.y)) {
+                        !(x <= 2 && y <= 2) && // Avoid start area
+                        !(x >= mazeSize - 3 && y >= mazeSize - 3)) { // Avoid exit area
                         validPositions.push({ x, y });
                     }
                 }
@@ -937,17 +985,17 @@
             // Shuffle positions
             validPositions.sort(() => Math.random() - 0.5);
 
-            // Calculate item counts based on maze size
-            const pokeballCount = Math.min(Math.floor(mazeSize / 3) + 1, 6);
-            const heartCount = Math.min(Math.floor(mazeSize / 5), 3);
+            // Calculate item counts based on maze size (more items for bigger mazes)
+            const pokeballCount = Math.min(Math.floor(mazeSize / 4) + 2, 10);
+            const heartCount = Math.min(Math.floor(mazeSize / 6) + 1, 5);
 
-            // Place pokeballs
+            // Place pokeballs spread across the maze
             for (let i = 0; i < pokeballCount && validPositions.length > 0; i++) {
                 const pos = validPositions.pop();
                 items.push({ x: pos.x, y: pos.y, type: 'pokeball' });
             }
 
-            // Place hearts
+            // Place hearts spread across the maze
             for (let i = 0; i < heartCount && validPositions.length > 0; i++) {
                 const pos = validPositions.pop();
                 items.push({ x: pos.x, y: pos.y, type: 'heart' });
