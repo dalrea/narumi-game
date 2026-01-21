@@ -982,6 +982,7 @@
 
         // Initialize
         async function init() {
+            createBoard();
             await updateUserInfo();
             await loadLeaderboard('startRankingList');
             drawBoard();
