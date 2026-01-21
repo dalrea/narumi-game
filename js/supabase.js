@@ -117,15 +117,16 @@ async function getLeaderboard(gameId, limit = 10) {
         .select('user_id, nickname, score, created_at')
         .eq('game_id', gameId)
         .order('score', { ascending: false })
-        .limit(limit * 10); // 충분한 데이터 확보
+        .limit(limit * 20); // 충분한 데이터 확보
 
     if (error) throw error;
     if (!data) return [];
 
-    // 사용자별 최고 점수만 추출
+    // 사용자별 최고 점수만 추출 (user_id가 없으면 nickname 사용)
     const userBestScores = new Map();
     for (const record of data) {
-        const key = record.user_id;
+        // user_id가 있으면 user_id 사용, 없으면 nickname을 키로 사용
+        const key = record.user_id || `nickname_${record.nickname}`;
         if (!userBestScores.has(key) || userBestScores.get(key).score < record.score) {
             userBestScores.set(key, {
                 nickname: record.nickname,
