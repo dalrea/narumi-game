@@ -583,6 +583,7 @@
             <p class="menu-title">Navigate the maze and catch monsters!</p>
             <ul class="menu-rules">
                 <li>❤️ You have 3 lives - hitting walls costs half a heart</li>
+                <li>👻 Avoid ghosts! They chase you and cost 1 full heart</li>
                 <li>💊 Collect hearts in the maze to heal (max 3)</li>
                 <li>🔴 Collect Pokeballs to catch the monster</li>
                 <li>🎯 More Pokeballs = More catch attempts</li>
@@ -768,6 +769,12 @@
         let items = []; // { x, y, type: 'heart' | 'pokeball' }
         let canvas, ctx;
 
+        // Enemy state (Pac-Man style ghost)
+        let enemies = [];
+        let enemyMoveInterval = null;
+        const ENEMY_ICONS = ['👻', '👾', '🤖', '👹'];
+        const ENEMY_COLORS = ['#e74c3c', '#9b59b6', '#3498db', '#e67e22'];
+
         // Initialize
         async function init() {
             canvas = document.getElementById('mazeCanvas');
@@ -909,12 +916,12 @@
 
             carve(1, 1);
 
-            // Add extra passages to create multiple paths (remove some walls)
-            // This ensures there are alternative routes to reach items
-            const extraPassages = Math.floor(mazeSize * mazeSize * 0.08); // 8% extra openings
+            // Add extra passages to create multiple paths (remove more walls for better connectivity)
+            // This ensures there are many alternative routes
+            const extraPassages = Math.floor(mazeSize * mazeSize * 0.15); // 15% extra openings (increased from 8%)
             let added = 0;
             let attempts = 0;
-            const maxAttempts = extraPassages * 10;
+            const maxAttempts = extraPassages * 20;
 
             while (added < extraPassages && attempts < maxAttempts) {
                 attempts++;
@@ -938,10 +945,31 @@
                         }
                     }
 
-                    // Only remove wall if it connects exactly 2 path cells (creates a loop)
+                    // Remove wall if it connects 2 or more path cells (creates loops and wider corridors)
                     if (pathCount >= 2) {
                         maze[y][x] = 0;
                         added++;
+                    }
+                }
+            }
+
+            // Create some wider corridors by removing adjacent walls
+            const wideCorridors = Math.floor(mazeSize * 0.5);
+            for (let i = 0; i < wideCorridors; i++) {
+                const x = Math.floor(Math.random() * (mazeSize - 6)) + 3;
+                const y = Math.floor(Math.random() * (mazeSize - 6)) + 3;
+
+                // If there's a path cell, try to widen it
+                if (maze[y][x] === 0) {
+                    const dir = Math.random() < 0.5 ? 'h' : 'v';
+                    if (dir === 'h' && maze[y][x-1] === 0 && maze[y][x+1] === 0) {
+                        // Widen horizontally
+                        if (y > 1 && maze[y-1][x] === 1) maze[y-1][x] = 0;
+                        if (y < mazeSize-2 && maze[y+1][x] === 1) maze[y+1][x] = 0;
+                    } else if (dir === 'v' && maze[y-1] && maze[y+1] && maze[y-1][x] === 0 && maze[y+1][x] === 0) {
+                        // Widen vertically
+                        if (x > 1 && maze[y][x-1] === 1) maze[y][x-1] = 0;
+                        if (x < mazeSize-2 && maze[y][x+1] === 1) maze[y][x+1] = 0;
                     }
                 }
             }
@@ -953,6 +981,9 @@
 
             // Place items
             placeItems();
+
+            // Place enemies
+            placeEnemies();
 
             // Adjust canvas size - scale to fit screen
             const maxCanvasSize = 450;
@@ -998,6 +1029,182 @@
             }
         }
 
+        // Place enemies in the maze
+        function placeEnemies() {
+            enemies = [];
+
+            // Number of enemies based on stage (1-4)
+            const enemyCount = Math.min(1 + Math.floor(currentStage / 8), 4);
+
+            // Enemy start positions - corners (avoiding player start at top-left)
+            const startPositions = [
+                { x: 1, y: mazeSize - 2 },           // Bottom-left
+                { x: mazeSize - 2, y: 1 },           // Top-right
+                { x: Math.floor(mazeSize/2), y: mazeSize - 2 }, // Bottom-center
+                { x: Math.floor(mazeSize/2), y: 1 }  // Top-center
+            ];
+
+            for (let i = 0; i < enemyCount; i++) {
+                const startPos = startPositions[i % startPositions.length];
+                // Find nearest valid path position
+                let enemyPos = findNearestPath(startPos.x, startPos.y);
+
+                enemies.push({
+                    x: enemyPos.x,
+                    y: enemyPos.y,
+                    icon: ENEMY_ICONS[i % ENEMY_ICONS.length],
+                    color: ENEMY_COLORS[i % ENEMY_COLORS.length],
+                    direction: { dx: 0, dy: 0 },
+                    lastPos: { x: enemyPos.x, y: enemyPos.y }
+                });
+            }
+        }
+
+        // Find nearest path cell
+        function findNearestPath(startX, startY) {
+            if (maze[startY] && maze[startY][startX] === 0) {
+                return { x: startX, y: startY };
+            }
+
+            // BFS to find nearest path
+            const queue = [{ x: startX, y: startY }];
+            const visited = new Set();
+
+            while (queue.length > 0) {
+                const pos = queue.shift();
+                const key = `${pos.x},${pos.y}`;
+
+                if (visited.has(key)) continue;
+                visited.add(key);
+
+                if (pos.x >= 0 && pos.x < mazeSize && pos.y >= 0 && pos.y < mazeSize) {
+                    if (maze[pos.y][pos.x] === 0) {
+                        return pos;
+                    }
+
+                    queue.push({ x: pos.x + 1, y: pos.y });
+                    queue.push({ x: pos.x - 1, y: pos.y });
+                    queue.push({ x: pos.x, y: pos.y + 1 });
+                    queue.push({ x: pos.x, y: pos.y - 1 });
+                }
+            }
+
+            return { x: 1, y: mazeSize - 2 }; // Fallback
+        }
+
+        // Move enemies (called on interval)
+        function moveEnemies() {
+            if (!document.getElementById('mazeScreen').classList.contains('active')) return;
+
+            for (const enemy of enemies) {
+                // Get valid directions
+                const directions = [
+                    { dx: 0, dy: -1 }, // Up
+                    { dx: 0, dy: 1 },  // Down
+                    { dx: -1, dy: 0 }, // Left
+                    { dx: 1, dy: 0 }   // Right
+                ];
+
+                const validMoves = directions.filter(dir => {
+                    const nx = enemy.x + dir.dx;
+                    const ny = enemy.y + dir.dy;
+                    // Check if valid path and not going back to last position
+                    return nx >= 0 && nx < mazeSize && ny >= 0 && ny < mazeSize &&
+                           maze[ny][nx] === 0 &&
+                           !(nx === enemy.lastPos.x && ny === enemy.lastPos.y);
+                });
+
+                if (validMoves.length > 0) {
+                    // Prefer moving towards player (simple chase AI)
+                    let bestMove = validMoves[0];
+                    let bestScore = Infinity;
+
+                    for (const move of validMoves) {
+                        const nx = enemy.x + move.dx;
+                        const ny = enemy.y + move.dy;
+                        const dist = Math.abs(nx - player.x) + Math.abs(ny - player.y);
+
+                        // 70% chance to chase player, 30% random movement
+                        const score = Math.random() < 0.7 ? dist : Math.random() * 100;
+
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestMove = move;
+                        }
+                    }
+
+                    enemy.lastPos = { x: enemy.x, y: enemy.y };
+                    enemy.x += bestMove.dx;
+                    enemy.y += bestMove.dy;
+                    enemy.direction = bestMove;
+                } else {
+                    // No valid moves except going back
+                    const backtrack = directions.find(dir => {
+                        const nx = enemy.x + dir.dx;
+                        const ny = enemy.y + dir.dy;
+                        return nx >= 0 && nx < mazeSize && ny >= 0 && ny < mazeSize && maze[ny][nx] === 0;
+                    });
+
+                    if (backtrack) {
+                        enemy.lastPos = { x: enemy.x, y: enemy.y };
+                        enemy.x += backtrack.dx;
+                        enemy.y += backtrack.dy;
+                        enemy.direction = backtrack;
+                    }
+                }
+            }
+
+            // Check collision with player
+            checkEnemyCollision();
+
+            drawMaze();
+        }
+
+        // Check if enemy touched player
+        function checkEnemyCollision() {
+            for (const enemy of enemies) {
+                if (enemy.x === player.x && enemy.y === player.y) {
+                    // Hit by enemy - lose 1 full life
+                    lives -= 1;
+                    updateHeartsDisplay();
+
+                    // Flash effect
+                    document.getElementById('gameContainer').classList.add('damage');
+                    setTimeout(() => {
+                        document.getElementById('gameContainer').classList.remove('damage');
+                    }, 300);
+
+                    // Reset enemy position to starting corner
+                    const startPos = findNearestPath(1, mazeSize - 2);
+                    enemy.x = startPos.x;
+                    enemy.y = startPos.y;
+                    enemy.lastPos = { x: startPos.x, y: startPos.y };
+
+                    if (lives <= 0) {
+                        stopEnemyMovement();
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Start enemy movement
+        function startEnemyMovement() {
+            stopEnemyMovement();
+            // Enemy moves every 400-600ms based on stage (faster at higher stages)
+            const speed = Math.max(300, 600 - currentStage * 10);
+            enemyMoveInterval = setInterval(moveEnemies, speed);
+        }
+
+        // Stop enemy movement
+        function stopEnemyMovement() {
+            if (enemyMoveInterval) {
+                clearInterval(enemyMoveInterval);
+                enemyMoveInterval = null;
+            }
+        }
+
         // Draw maze
         function drawMaze() {
             ctx.fillStyle = '#0a0a1a';
@@ -1033,6 +1240,16 @@
             // Draw exit with monster icon
             ctx.font = `${cellSize * 0.7}px Arial`;
             ctx.fillText(currentMonster.icon, exit.x * cellSize + cellSize/2, exit.y * cellSize + cellSize/2);
+
+            // Draw enemies
+            ctx.font = `${cellSize * 0.65}px Arial`;
+            for (const enemy of enemies) {
+                // Draw enemy glow
+                ctx.shadowColor = enemy.color;
+                ctx.shadowBlur = 10;
+                ctx.fillText(enemy.icon, enemy.x * cellSize + cellSize/2, enemy.y * cellSize + cellSize/2);
+                ctx.shadowBlur = 0;
+            }
 
             // Draw player
             ctx.fillStyle = '#4ecdc4';
@@ -1102,6 +1319,10 @@
             // Move player
             player.x = newX;
             player.y = newY;
+
+            // Check for enemy collision after player moves
+            checkEnemyCollision();
+            if (lives <= 0) return; // Game over already triggered
 
             // Check for item pickup
             const itemIndex = items.findIndex(item => item.x === player.x && item.y === player.y);
@@ -1203,10 +1424,16 @@
             generateMaze();
             drawMaze();
             showScreen('mazeScreen');
+
+            // Start enemy movement
+            startEnemyMovement();
         }
 
         // Encounter monster
         function encounterMonster() {
+            // Stop enemies when encountering monster
+            stopEnemyMovement();
+
             catchAttempts = pokeballs;
 
             const display = document.getElementById('monsterDisplay');
