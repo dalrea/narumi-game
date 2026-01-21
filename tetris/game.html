@@ -261,37 +261,83 @@
         .mobile-btn.drop-btn {
             background: rgba(231, 76, 60, 0.3);
         }
+        .mobile-score-bar {
+            display: none;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 320px;
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-bottom: 5px;
+            color: white;
+            font-size: 14px;
+        }
+        .mobile-score-bar b {
+            color: #4ecdc4;
+        }
         @media (max-width: 600px) {
+            .mobile-score-bar {
+                display: flex;
+            }
+            body {
+                padding: 5px;
+                justify-content: flex-start;
+            }
             #gameWrapper {
                 flex-direction: column;
                 align-items: center;
             }
             .side-panel {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .info-box {
-                min-width: 80px;
-                padding: 10px;
-            }
-            .info-box .value {
-                font-size: 18px;
+                display: none;
             }
             #gameCanvas {
-                width: 280px;
-                height: 560px;
+                width: 100%;
+                max-width: 300px;
+                height: auto;
+                aspect-ratio: 1/2;
             }
             .overlay h1 {
-                font-size: 32px;
+                font-size: 28px;
+            }
+            .overlay p {
+                font-size: 14px;
             }
             .controls {
                 display: none;
+            }
+            .mobile-controls {
+                margin-top: 5px;
+                gap: 5px;
+                padding: 5px;
+            }
+            .mobile-row {
+                gap: 8px;
+            }
+            .mobile-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+            }
+            .mobile-btn#btnDown {
+                width: 120px;
+            }
+            .user-info-bar {
+                top: 5px;
+                left: 5px;
+                padding: 3px 8px;
+                font-size: 10px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="mobile-score-bar" id="mobileScoreBar">
+        <span>Score: <b id="mobileScore">0</b></span>
+        <span>Lv.<b id="mobileLevel">1</b></span>
+        <span>Lines: <b id="mobileLines">0</b></span>
+    </div>
+
     <div id="gameWrapper">
         <canvas id="gameCanvas" width="300" height="600"></canvas>
 
@@ -637,6 +683,10 @@
             document.getElementById('scoreDisplay').textContent = score;
             document.getElementById('levelDisplay').textContent = level;
             document.getElementById('linesDisplay').textContent = lines;
+            // Mobile score bar
+            document.getElementById('mobileScore').textContent = score;
+            document.getElementById('mobileLevel').textContent = level;
+            document.getElementById('mobileLines').textContent = lines;
         }
 
         // Update drop speed based on level
