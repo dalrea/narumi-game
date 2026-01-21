@@ -736,7 +736,28 @@
             { id: 27, name: "Terranos", icon: "🌍", type: "rock", rarity: "legendary", catchRate: 3, desc: "The legendary earth guardian." },
             { id: 28, name: "Tempestis", icon: "🌪️", type: "electric", rarity: "legendary", catchRate: 3, desc: "The legendary storm guardian." },
             { id: 29, name: "Oceanis", icon: "🌊", type: "water", rarity: "legendary", catchRate: 3, desc: "The legendary sea guardian." },
-            { id: 30, name: "Floranis", icon: "🌸", type: "grass", rarity: "legendary", catchRate: 3, desc: "The legendary nature guardian." }
+            { id: 30, name: "Floranis", icon: "🌸", type: "grass", rarity: "legendary", catchRate: 3, desc: "The legendary nature guardian." },
+            // New monsters (Stage 31-50)
+            { id: 31, name: "Shadekit", icon: "🐱", type: "dark", rarity: "common", catchRate: 38, desc: "A mischievous kitten born from shadows." },
+            { id: 32, name: "Umbrawolf", icon: "🐺", type: "dark", rarity: "uncommon", catchRate: 26, desc: "A wolf that hunts in complete darkness." },
+            { id: 33, name: "Voidreaper", icon: "🦇", type: "dark", rarity: "epic", catchRate: 9, desc: "A bat creature that devours light itself." },
+            { id: 34, name: "Pixibell", icon: "🧚", type: "fairy", rarity: "common", catchRate: 38, desc: "A tiny fairy that spreads magical dust." },
+            { id: 35, name: "Glamourox", icon: "🦄", type: "fairy", rarity: "uncommon", catchRate: 26, desc: "A unicorn with a dazzling rainbow mane." },
+            { id: 36, name: "Eternafae", icon: "👸", type: "fairy", rarity: "epic", catchRate: 9, desc: "The queen of all fairies, eternally young." },
+            { id: 37, name: "Coglet", icon: "⚙️", type: "steel", rarity: "common", catchRate: 36, desc: "A small gear that spins endlessly." },
+            { id: 38, name: "Ironhound", icon: "🤖", type: "steel", rarity: "uncommon", catchRate: 24, desc: "A mechanical dog with steel fangs." },
+            { id: 39, name: "Titanmech", icon: "🦾", type: "steel", rarity: "epic", catchRate: 8, desc: "An ancient war machine awakened." },
+            { id: 40, name: "Mindling", icon: "🔮", type: "psychic", rarity: "common", catchRate: 36, desc: "A floating orb of pure thought." },
+            { id: 41, name: "Psycat", icon: "😺", type: "psychic", rarity: "uncommon", catchRate: 24, desc: "A cat that can read your mind." },
+            { id: 42, name: "Cosmind", icon: "🧠", type: "psychic", rarity: "epic", catchRate: 8, desc: "A being of infinite intelligence." },
+            { id: 43, name: "Venomite", icon: "🦂", type: "dark", rarity: "rare", catchRate: 16, desc: "A scorpion with deadly poison." },
+            { id: 44, name: "Crystawing", icon: "🦋", type: "fairy", rarity: "rare", catchRate: 16, desc: "A butterfly with crystal wings." },
+            { id: 45, name: "Magnetron", icon: "🧲", type: "steel", rarity: "rare", catchRate: 14, desc: "A creature that controls magnetic fields." },
+            { id: 46, name: "Dreamweaver", icon: "💫", type: "psychic", rarity: "rare", catchRate: 14, desc: "A spirit that walks through dreams." },
+            { id: 47, name: "Abyssion", icon: "🕳️", type: "dark", rarity: "legendary", catchRate: 2, desc: "The legendary void guardian." },
+            { id: 48, name: "Seraphina", icon: "👼", type: "fairy", rarity: "legendary", catchRate: 2, desc: "The legendary light guardian." },
+            { id: 49, name: "Mechagod", icon: "⚔️", type: "steel", rarity: "legendary", catchRate: 2, desc: "The legendary machine guardian." },
+            { id: 50, name: "Omniscient", icon: "👁️", type: "psychic", rarity: "legendary", catchRate: 2, desc: "The legendary mind guardian." }
         ];
 
         // Maze size thresholds based on collection count (0.75x scale)
@@ -866,7 +887,8 @@
 
         // Get monster for current stage
         function getStageMonster(stage) {
-            const indexInCycle = (stage - 1) % 30;
+            const totalMonsters = MONSTERS.length; // 50
+            const indexInCycle = (stage - 1) % totalMonsters;
 
             const orderedMonsters = [...MONSTERS].sort((a, b) => {
                 const rarityOrder = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
