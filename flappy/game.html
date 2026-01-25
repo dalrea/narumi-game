@@ -395,6 +395,89 @@
             font-size: 48px;
             margin-bottom: 10px;
         }
+        .new-item-reason {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        /* 잠긴 아이템 상세 모달 */
+        .item-detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+        }
+        .item-detail-modal.hidden {
+            display: none;
+        }
+        .item-detail-card {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 100%;
+            color: white;
+            position: relative;
+        }
+        .item-detail-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .item-detail-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            filter: grayscale(80%);
+        }
+        .item-detail-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .item-detail-rarity {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding: 4px 12px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .item-detail-rarity.common { background: #666; }
+        .item-detail-rarity.uncommon { background: #2ecc71; }
+        .item-detail-rarity.rare { background: #3498db; }
+        .item-detail-rarity.epic { background: #9b59b6; }
+        .item-detail-rarity.legendary { background: #f39c12; }
+        .item-detail-unlock {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        .item-detail-unlock-title {
+            font-size: 12px;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+        .item-detail-unlock-desc {
+            font-size: 16px;
+        }
+        .item-card.locked {
+            opacity: 0.5;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -443,6 +526,7 @@
                 <div class="new-item-icon" id="newItemIcon">🎉</div>
                 <div><strong>새 아이템 해금!</strong></div>
                 <div id="newItemName"></div>
+                <div class="new-item-reason" id="newItemReason"></div>
             </div>
 
             <!-- 랭킹 -->
@@ -499,6 +583,20 @@
 
             <!-- 아이템 그리드 -->
             <div class="items-grid" id="itemsGrid"></div>
+        </div>
+    </div>
+
+    <!-- 잠긴 아이템 상세 모달 -->
+    <div class="item-detail-modal hidden" id="itemDetailModal">
+        <div class="item-detail-card">
+            <button class="item-detail-close" onclick="closeItemDetail()">×</button>
+            <div class="item-detail-icon" id="detailItemIcon">🔒</div>
+            <div class="item-detail-name" id="detailItemName">아이템 이름</div>
+            <div class="item-detail-rarity" id="detailItemRarity">common</div>
+            <div class="item-detail-unlock">
+                <div class="item-detail-unlock-title">🔓 해금 조건</div>
+                <div class="item-detail-unlock-desc" id="detailUnlockDesc">해금 조건 설명</div>
+            </div>
         </div>
     </div>
 
@@ -888,9 +986,12 @@
                 const isUnlocked = unlockedItems.includes(item.id);
                 const isEquipped = equippedItems[item.type] === item.id;
 
+                // 잠긴 아이템은 showItemDetail, 해금된 아이템은 equipItemById
+                const clickHandler = isUnlocked ? `equipItemById(${item.id})` : `showItemDetail(${item.id})`;
+
                 return `
                     <div class="item-card ${isUnlocked ? '' : 'locked'} ${isEquipped ? 'equipped' : ''} rarity-${item.rarity}"
-                         onclick="${isUnlocked ? `equipItemById(${item.id})` : ''}"
+                         onclick="${clickHandler}"
                          title="${item.unlock_description}">
                         ${!isUnlocked ? '<span class="lock-icon">🔒</span>' : ''}
                         <span class="item-icon">${item.icon}</span>
@@ -913,15 +1014,39 @@
             const alert = document.getElementById('newItemAlert');
             const icon = document.getElementById('newItemIcon');
             const name = document.getElementById('newItemName');
+            const reason = document.getElementById('newItemReason');
 
             icon.textContent = items.map(i => i.icon).join(' ');
             name.textContent = items.map(i => i.name).join(', ');
+            // 해금 이유 표시
+            reason.textContent = items.map(i => i.unlock_description).join(' / ');
             alert.classList.remove('hidden');
         }
 
         // 새 아이템 알림 숨기기
         function hideNewItemAlert() {
             document.getElementById('newItemAlert').classList.add('hidden');
+        }
+
+        // 잠긴 아이템 상세 모달 열기
+        function showItemDetail(itemId) {
+            const item = allItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('detailItemIcon').textContent = item.icon;
+            document.getElementById('detailItemName').textContent = item.name;
+
+            const rarityEl = document.getElementById('detailItemRarity');
+            rarityEl.textContent = item.rarity;
+            rarityEl.className = 'item-detail-rarity ' + item.rarity;
+
+            document.getElementById('detailUnlockDesc').textContent = item.unlock_description;
+            document.getElementById('itemDetailModal').classList.remove('hidden');
+        }
+
+        // 잠긴 아이템 상세 모달 닫기
+        function closeItemDetail() {
+            document.getElementById('itemDetailModal').classList.add('hidden');
         }
 
         // 장착된 아이템 가져오기
@@ -1303,6 +1428,13 @@
         document.getElementById('collectionModal').addEventListener('click', (e) => {
             if (e.target.id === 'collectionModal') {
                 closeCollection();
+            }
+        });
+
+        // 잠긴 아이템 상세 모달 바깥 클릭시 닫기
+        document.getElementById('itemDetailModal').addEventListener('click', (e) => {
+            if (e.target.id === 'itemDetailModal') {
+                closeItemDetail();
             }
         });
 
