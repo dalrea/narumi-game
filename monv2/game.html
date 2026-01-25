@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>몬브 투 (MonV2) - Simsim Games</title>
+    <!-- Pixel Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS Variables - Stardew Valley Color Palette ===== */
+        :root {
+            /* Wood & Earth Tones */
+            --wood-dark: #5c3d2e;
+            --wood-medium: #8b5a2b;
+            --wood-light: #c4a574;
+            --wood-highlight: #dbc4a0;
+
+            /* Background Colors */
+            --bg-dark: #2d1b0e;
+            --bg-medium: #4a3728;
+            --bg-light: #6b5344;
+
+            /* Accent Colors */
+            --accent-green: #7cb342;
+            --accent-blue: #5c9ce6;
+            --accent-red: #e57373;
+            --accent-yellow: #ffd54f;
+            --accent-orange: #ff9800;
+            --accent-purple: #ab47bc;
+
+            /* UI Colors */
+            --panel-bg: rgba(93, 64, 55, 0.95);
+            --panel-border: #3e2723;
+            --text-light: #fff8e1;
+            --text-dark: #3e2723;
+            --text-shadow: #1a0f0a;
+
+            /* Type Colors */
+            --type-fire: #e57373;
+            --type-water: #5c9ce6;
+            --type-grass: #7cb342;
+            --type-electric: #ffd54f;
+            --type-ice: #81d4fa;
+            --type-rock: #a1887f;
+            --type-ghost: #ab47bc;
+            --type-dragon: #7c4dff;
+            --type-dark: #455a64;
+            --type-fairy: #f48fb1;
+            --type-steel: #90a4ae;
+            --type-psychic: #ce93d8;
+
+            /* Rarity Colors */
+            --rarity-common: #a5d6a7;
+            --rarity-uncommon: #5c9ce6;
+            --rarity-rare: #ab47bc;
+            --rarity-epic: #e57373;
+            --rarity-legendary: #ffd54f;
+        }
+
+        /* ===== Reset & Base Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #87ceeb 0%, #98d4a0 30%, #7cb342 100%);
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            color: var(--text-light);
+            overflow-x: hidden;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* ===== Pixel Art Panel Style ===== */
+        .panel {
+            background: var(--panel-bg);
+            border: 4px solid var(--wood-dark);
+            border-radius: 4px;
+            box-shadow:
+                inset 2px 2px 0 var(--wood-light),
+                inset -2px -2px 0 var(--panel-border),
+                4px 4px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 4px solid var(--wood-medium);
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            color: var(--accent-yellow);
+            text-shadow:
+                2px 2px 0 var(--text-shadow),
+                -1px -1px 0 var(--wood-dark);
+            letter-spacing: 2px;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ===== Pixel Button Style ===== */
+        .btn {
+            padding: 10px 16px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            background: linear-gradient(180deg, var(--accent-orange) 0%, #e65100 100%);
+            color: white;
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            text-decoration: none;
+            text-shadow: 1px 1px 0 var(--text-shadow);
+            box-shadow:
+                inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+                inset -1px -1px 0 rgba(0, 0, 0, 0.2),
+                2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow:
+                inset 1px 1px 0 rgba(0, 0, 0, 0.2),
+                inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-medium) 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--accent-green) 0%, #558b2f 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(180deg, var(--accent-red) 0%, #c62828 100%);
+        }
+
+        /* ===== Stats Bar ===== */
+        .stats-bar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-box {
+            background: var(--panel-bg);
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 80px;
+            box-shadow:
+                inset 1px 1px 0 var(--wood-light),
+                2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-box .label {
+            font-size: 6px;
+            color: var(--wood-light);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .stat-box .value {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            text-shadow: 1px 1px 0 var(--text-shadow);
+        }
+
+        /* ===== Game Container ===== */
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* ===== Screen System ===== */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ===== Menu Screen ===== */
+        .menu-title {
+            font-size: 10px;
+            color: var(--wood-light);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .menu-logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+            filter: drop-shadow(3px 3px 0 var(--text-shadow));
+        }
+
+        .menu-rules {
+            font-size: 8px;
+            color: var(--text-light);
+            text-align: left;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border: 2px solid var(--wood-dark);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            line-height: 2;
+        }
+
+        .menu-rules li {
+            margin: 10px 0;
+            list-style: none;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .menu-rules li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-yellow);
+        }
+
+        .start-btn {
+            padding: 15px 30px;
+            font-size: 12px;
+            margin: 10px;
+        }
+
+        /* ===== Stage Info ===== */
+        .stage-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            background: var(--panel-bg);
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .stage-number {
+            font-size: 10px;
+            color: var(--accent-yellow);
+            text-shadow: 1px 1px 0 var(--text-shadow);
+        }
+
+        .stage-monster {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stage-monster-icon {
+            font-size: 24px;
+            filter: drop-shadow(2px 2px 0 var(--text-shadow));
+        }
+
+        .stage-monster-name {
+            font-size: 8px;
+            color: var(--text-light);
+        }
+
+        /* ===== Game HUD ===== */
+        .game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            background: var(--panel-bg);
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+        }
+
+        .hearts-display {
+            font-size: 16px;
+            letter-spacing: 2px;
+        }
+
+        .pokeballs-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--accent-yellow);
+        }
+
+        .pokeballs-display .ball-icon {
+            font-size: 16px;
+        }
+
+        /* ===== Maze Canvas ===== */
+        #mazeCanvas {
+            border: 4px solid var(--wood-dark);
+            border-radius: 4px;
+            background: var(--bg-dark);
+            touch-action: none;
+            max-width: 100%;
+            max-height: 55vh;
+            box-shadow:
+                inset 0 0 20px rgba(0, 0, 0, 0.5),
+                4px 4px 0 rgba(0, 0, 0, 0.3);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .maze-wrapper {
+            overflow: auto;
+            max-height: 55vh;
+            border-radius: 4px;
+            background: var(--bg-dark);
+            border: 4px solid var(--wood-medium);
+        }
+
+        /* ===== Mobile Controls (D-Pad) ===== */
+        .mobile-controls {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-medium) 100%);
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+            font-size: 18px;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+                2px 2px 0 rgba(0, 0, 0, 0.3);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn.empty {
+            visibility: hidden;
+        }
+
+        /* ===== Collection Screen ===== */
+        .dex-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dex-title {
+            font-size: 12px;
+            color: var(--accent-yellow);
+            text-shadow: 2px 2px 0 var(--text-shadow);
+        }
+
+        .dex-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dex-tab {
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            background: var(--wood-medium);
+            border: 2px solid var(--wood-dark);
+            border-radius: 4px 4px 0 0;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dex-tab.active {
+            background: var(--panel-bg);
+            border-bottom-color: var(--panel-bg);
+            color: var(--accent-yellow);
+        }
+
+        .dex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 3px solid var(--wood-dark);
+            border-radius: 4px;
+        }
+
+        .dex-item {
+            background: var(--panel-bg);
+            border: 2px solid var(--wood-dark);
+            border-radius: 4px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .dex-item:hover {
+            transform: scale(1.05);
+        }
+
+        .dex-item.owned {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 8px rgba(124, 179, 66, 0.5);
+        }
+
+        .dex-item.missing {
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+
+        .dex-item-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .dex-item-name {
+            font-size: 6px;
+            color: var(--text-light);
+            word-break: break-all;
+        }
+
+        .dex-item-id {
+            font-size: 5px;
+            color: var(--wood-light);
+            margin-top: 2px;
+        }
+
+        /* ===== Monster Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            width: 90%;
+            max-width: 350px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .modal-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+            filter: drop-shadow(3px 3px 0 var(--text-shadow));
+        }
+
+        .modal-name {
+            font-size: 14px;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 var(--text-shadow);
+        }
+
+        .modal-info {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .modal-badge {
+            padding: 5px 10px;
+            font-size: 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .modal-desc {
+            font-size: 8px;
+            line-height: 2;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .modal-stats {
+            font-size: 7px;
+            color: var(--wood-light);
+            margin-bottom: 15px;
+        }
+
+        /* ===== Encounter Screen ===== */
+        .encounter-container {
+            padding: 20px;
+        }
+
+        .encounter-monster {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: bounce 1s ease-in-out infinite;
+            filter: drop-shadow(4px 4px 0 var(--text-shadow));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .encounter-name {
+            font-size: 14px;
+            color: var(--accent-yellow);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 var(--text-shadow);
+        }
+
+        .encounter-info {
+            font-size: 8px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .catch-result {
+            font-size: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--wood-dark);
+        }
+
+        .catch-result.success {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .catch-result.fail {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* ===== Game Over Screen ===== */
+        .gameover-title {
+            font-size: 18px;
+            color: var(--accent-red);
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0 var(--text-shadow);
+        }
+
+        .gameover-stats {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 2px solid var(--wood-dark);
+        }
+
+        .gameover-stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 8px;
+        }
+
+        .gameover-stat .label {
+            color: var(--wood-light);
+        }
+
+        .gameover-stat .value {
+            color: var(--accent-yellow);
+        }
+
+        /* ===== Animations ===== */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes catch-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .catch-success-anim {
+            animation: catch-success 0.5s ease-in-out;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 500px) {
+            .header h1 {
+                font-size: 12px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 8px;
+            }
+
+            .mobile-controls {
+                display: block;
+            }
+
+            .stat-box .label {
+                font-size: 5px;
+            }
+
+            .stat-box .value {
+                font-size: 10px;
+            }
+
+            .dex-item-icon {
+                font-size: 24px;
+            }
+
+            .dex-item-name {
+                font-size: 5px;
+            }
+        }
+
+        /* ===== Scrollbar Styling ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--wood-medium);
+            border-radius: 4px;
+            border: 1px solid var(--wood-dark);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--wood-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header panel">
+        <h1>몬브 투</h1>
+        <div class="header-btns">
+            <button class="btn btn-secondary" onclick="showCollection()">도감</button>
+            <a href="../index.html" class="btn btn-secondary">홈</a>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-box">
+            <div class="label">스테이지</div>
+            <div class="value" id="stageDisplay">1</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">수집</div>
+            <div class="value" id="collectedDisplay">0/50</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">닉네임</div>
+            <div class="value" id="nicknameDisplay">---</div>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container panel">
+
+        <!-- Menu Screen -->
+        <div id="menuScreen" class="screen active">
+            <div class="menu-logo">🐲</div>
+            <h2 class="menu-title">몬스터를 수집하고<br>미로를 탈출하라!</h2>
+
+            <ul class="menu-rules">
+                <li>미로를 탐험하며 아이템을 수집하세요</li>
+                <li>🔴 몬스터볼을 모아 포획 확률을 높이세요</li>
+                <li>💊 하트를 먹으면 생명력이 회복됩니다</li>
+                <li>👻 적을 피해 출구까지 도달하세요</li>
+                <li>출구에서 몬스터를 만나 포획에 도전!</li>
+            </ul>
+
+            <button class="btn btn-primary start-btn" onclick="startGame()">게임 시작</button>
+            <button class="btn btn-secondary" onclick="showCollection()">도감 보기</button>
+        </div>
+
+        <!-- Maze Screen -->
+        <div id="mazeScreen" class="screen">
+            <div class="stage-info">
+                <span class="stage-number">STAGE <span id="currentStage">1</span></span>
+                <div class="stage-monster">
+                    <span class="stage-monster-icon" id="targetMonsterIcon">🔥</span>
+                    <span class="stage-monster-name" id="targetMonsterName">Flamby</span>
+                </div>
+            </div>
+
+            <div class="game-hud">
+                <div class="hearts-display" id="heartsDisplay">❤️❤️❤️</div>
+                <div class="pokeballs-display">
+                    <span class="ball-icon">🔴</span>
+                    <span id="pokeballCount">0</span>
+                </div>
+            </div>
+
+            <div class="maze-wrapper">
+                <canvas id="mazeCanvas"></canvas>
+            </div>
+
+            <!-- Mobile D-Pad -->
+            <div class="mobile-controls">
+                <div class="dpad">
+                    <div class="control-btn empty"></div>
+                    <button class="control-btn" data-dir="up">▲</button>
+                    <div class="control-btn empty"></div>
+                    <button class="control-btn" data-dir="left">◀</button>
+                    <div class="control-btn empty"></div>
+                    <button class="control-btn" data-dir="right">▶</button>
+                    <div class="control-btn empty"></div>
+                    <button class="control-btn" data-dir="down">▼</button>
+                    <div class="control-btn empty"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Encounter Screen -->
+        <div id="encounterScreen" class="screen">
+            <div class="encounter-container panel">
+                <p style="font-size: 10px; color: var(--wood-light); margin-bottom: 10px;">야생의 몬스터가 나타났다!</p>
+                <div class="encounter-monster" id="encounterIcon">🔥</div>
+                <h2 class="encounter-name" id="encounterName">Flamby</h2>
+                <p class="encounter-info" id="encounterInfo">타입: fire | 등급: common</p>
+
+                <div id="catchArea">
+                    <p style="font-size: 8px; margin-bottom: 15px;">
+                        보유 몬스터볼: <span id="encounterBalls">0</span>개
+                    </p>
+                    <button class="btn btn-primary" onclick="attemptCatch()">포획 시도!</button>
+                </div>
+
+                <div id="catchResult" class="catch-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Collection Screen -->
+        <div id="collectionScreen" class="screen">
+            <div class="dex-header">
+                <h2 class="dex-title">몬스터 도감</h2>
+                <button class="btn btn-secondary" onclick="closeCollection()">닫기</button>
+            </div>
+
+            <div class="dex-tabs">
+                <button class="dex-tab active" data-filter="all">전체</button>
+                <button class="dex-tab" data-filter="owned">보유</button>
+                <button class="dex-tab" data-filter="missing">미보유</button>
+            </div>
+
+            <div class="dex-grid" id="dexGrid">
+                <!-- Monster cards will be generated here -->
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameoverScreen" class="screen">
+            <h2 class="gameover-title">GAME OVER</h2>
+
+            <div class="gameover-stats">
+                <div class="gameover-stat">
+                    <span class="label">도달 스테이지</span>
+                    <span class="value" id="finalStage">1</span>
+                </div>
+                <div class="gameover-stat">
+                    <span class="label">총 수집</span>
+                    <span class="value" id="finalCollection">0/50</span>
+                </div>
+                <div class="gameover-stat">
+                    <span class="label">이번 게임 포획</span>
+                    <span class="value" id="finalCatches">0</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary start-btn" onclick="restartGame()">다시 시작</button>
+            <button class="btn btn-secondary" onclick="showCollection()">도감 보기</button>
+        </div>
+    </div>
+
+    <!-- Monster Detail Modal -->
+    <div class="modal-overlay" id="monsterModal">
+        <div class="modal panel">
+            <div class="modal-icon" id="modalIcon">🔥</div>
+            <h3 class="modal-name" id="modalName">Flamby</h3>
+
+            <div class="modal-info">
+                <span class="modal-badge" id="modalType">fire</span>
+                <span class="modal-badge" id="modalRarity">common</span>
+            </div>
+
+            <p class="modal-desc" id="modalDesc">A small flame spirit that loves warm places.</p>
+
+            <div class="modal-stats" id="modalStats">
+                포획 횟수: 0회<br>
+                첫 포획: -
+            </div>
+
+            <button class="btn btn-secondary" onclick="closeModal()">닫기</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script>
+        // ===== Monster Database (DB에서 로드) =====
+        let MONSTERS = [
+            // 폴백 데이터 (DB 로드 실패 시)
+            { id: 1, name: "Flamby", icon: "🔥", type: "fire", rarity: "common", catchRate: 40, desc: "A small flame spirit that loves warm places." },
+            { id: 2, name: "Blazecub", icon: "🦁", type: "fire", rarity: "uncommon", catchRate: 30, desc: "A lion cub with a fiery mane." },
+            { id: 3, name: "Infernox", icon: "🐉", type: "fire", rarity: "epic", catchRate: 12, desc: "A dragon born from volcanic flames." },
+            { id: 4, name: "Droplet", icon: "💧", type: "water", rarity: "common", catchRate: 40, desc: "A cheerful water drop that bounces around." },
+            { id: 5, name: "Wavepup", icon: "🐬", type: "water", rarity: "uncommon", catchRate: 30, desc: "A playful dolphin that rides the waves." },
+            { id: 6, name: "Tsunamor", icon: "🐋", type: "water", rarity: "epic", catchRate: 12, desc: "An ancient whale with power over tides." },
+            { id: 7, name: "Sproutie", icon: "🌱", type: "grass", rarity: "common", catchRate: 40, desc: "A tiny sprout full of life energy." },
+            { id: 8, name: "Florabun", icon: "🐰", type: "grass", rarity: "uncommon", catchRate: 30, desc: "A bunny with flowers growing on its ears." },
+            { id: 9, name: "Naturon", icon: "🌳", type: "grass", rarity: "epic", catchRate: 12, desc: "A walking tree that protects the forest." },
+            { id: 10, name: "Sparkle", icon: "⚡", type: "electric", rarity: "common", catchRate: 38, desc: "A ball of static electricity." },
+            { id: 11, name: "Voltiger", icon: "🐯", type: "electric", rarity: "uncommon", catchRate: 28, desc: "A tiger that crackles with lightning." },
+            { id: 12, name: "Thundera", icon: "🦅", type: "electric", rarity: "epic", catchRate: 10, desc: "A majestic bird that commands storms." },
+            { id: 13, name: "Snowfluff", icon: "❄️", type: "ice", rarity: "common", catchRate: 38, desc: "A fluffy snowball with a cold heart." },
+            { id: 14, name: "Frostbear", icon: "🐻‍❄️", type: "ice", rarity: "uncommon", catchRate: 28, desc: "A polar bear that never feels cold." },
+            { id: 15, name: "Glacior", icon: "🏔️", type: "ice", rarity: "epic", catchRate: 10, desc: "An ancient ice golem from frozen peaks." },
+            { id: 16, name: "Pebble", icon: "🪨", type: "rock", rarity: "common", catchRate: 40, desc: "A small living rock with big dreams." },
+            { id: 17, name: "Bouldog", icon: "🐕", type: "rock", rarity: "uncommon", catchRate: 30, desc: "A sturdy dog made of solid stone." },
+            { id: 18, name: "Titanrock", icon: "🗿", type: "rock", rarity: "epic", catchRate: 12, desc: "A massive golem from ancient times." },
+            { id: 19, name: "Whisper", icon: "👻", type: "ghost", rarity: "uncommon", catchRate: 25, desc: "A shy ghost that only appears at night." },
+            { id: 20, name: "Phantail", icon: "🐈‍⬛", type: "ghost", rarity: "rare", catchRate: 18, desc: "A spectral cat with nine ghostly tails." },
+            { id: 21, name: "Dreadlord", icon: "💀", type: "ghost", rarity: "epic", catchRate: 8, desc: "A powerful spirit from the underworld." },
+            { id: 22, name: "Drakeling", icon: "🐲", type: "dragon", rarity: "rare", catchRate: 15, desc: "A baby dragon learning to fly." },
+            { id: 23, name: "Wyvernix", icon: "🦎", type: "dragon", rarity: "epic", catchRate: 8, desc: "A swift wyvern with razor-sharp claws." },
+            { id: 24, name: "Celestrix", icon: "✨", type: "dragon", rarity: "legendary", catchRate: 3, desc: "A divine dragon said to grant wishes." },
+            { id: 25, name: "Solarius", icon: "☀️", type: "fire", rarity: "legendary", catchRate: 3, desc: "The legendary sun guardian." },
+            { id: 26, name: "Lunaris", icon: "🌙", type: "ice", rarity: "legendary", catchRate: 3, desc: "The legendary moon guardian." },
+            { id: 27, name: "Terranos", icon: "🌍", type: "rock", rarity: "legendary", catchRate: 3, desc: "The legendary earth guardian." },
+            { id: 28, name: "Tempestis", icon: "🌪️", type: "electric", rarity: "legendary", catchRate: 3, desc: "The legendary storm guardian." },
+            { id: 29, name: "Oceanis", icon: "🌊", type: "water", rarity: "legendary", catchRate: 3, desc: "The legendary sea guardian." },
+            { id: 30, name: "Floranis", icon: "🌸", type: "grass", rarity: "legendary", catchRate: 3, desc: "The legendary nature guardian." },
+            { id: 31, name: "Shadekit", icon: "🐱", type: "dark", rarity: "common", catchRate: 38, desc: "A mischievous kitten born from shadows." },
+            { id: 32, name: "Umbrawolf", icon: "🐺", type: "dark", rarity: "uncommon", catchRate: 26, desc: "A wolf that hunts in complete darkness." },
+            { id: 33, name: "Voidreaper", icon: "🦇", type: "dark", rarity: "epic", catchRate: 9, desc: "A bat creature that devours light itself." },
+            { id: 34, name: "Pixibell", icon: "🧚", type: "fairy", rarity: "common", catchRate: 38, desc: "A tiny fairy that spreads magical dust." },
+            { id: 35, name: "Glamourox", icon: "🦄", type: "fairy", rarity: "uncommon", catchRate: 26, desc: "A unicorn with a dazzling rainbow mane." },
+            { id: 36, name: "Eternafae", icon: "👸", type: "fairy", rarity: "epic", catchRate: 9, desc: "The queen of all fairies, eternally young." },
+            { id: 37, name: "Coglet", icon: "⚙️", type: "steel", rarity: "common", catchRate: 36, desc: "A small gear that spins endlessly." },
+            { id: 38, name: "Ironhound", icon: "🤖", type: "steel", rarity: "uncommon", catchRate: 24, desc: "A mechanical dog with steel fangs." },
+            { id: 39, name: "Titanmech", icon: "🦾", type: "steel", rarity: "epic", catchRate: 8, desc: "An ancient war machine awakened." },
+            { id: 40, name: "Mindling", icon: "🔮", type: "psychic", rarity: "common", catchRate: 36, desc: "A floating orb of pure thought." },
+            { id: 41, name: "Psycat", icon: "😺", type: "psychic", rarity: "uncommon", catchRate: 24, desc: "A cat that can read your mind." },
+            { id: 42, name: "Cosmind", icon: "🧠", type: "psychic", rarity: "epic", catchRate: 8, desc: "A being of infinite intelligence." },
+            { id: 43, name: "Venomite", icon: "🦂", type: "dark", rarity: "rare", catchRate: 16, desc: "A scorpion with deadly poison." },
+            { id: 44, name: "Crystawing", icon: "🦋", type: "fairy", rarity: "rare", catchRate: 16, desc: "A butterfly with crystal wings." },
+            { id: 45, name: "Magnetron", icon: "🧲", type: "steel", rarity: "rare", catchRate: 14, desc: "A creature that controls magnetic fields." },
+            { id: 46, name: "Dreamweaver", icon: "💫", type: "psychic", rarity: "rare", catchRate: 14, desc: "A spirit that walks through dreams." },
+            { id: 47, name: "Abyssion", icon: "🕳️", type: "dark", rarity: "legendary", catchRate: 2, desc: "The legendary void guardian." },
+            { id: 48, name: "Seraphina", icon: "👼", type: "fairy", rarity: "legendary", catchRate: 2, desc: "The legendary light guardian." },
+            { id: 49, name: "Mechagod", icon: "⚔️", type: "steel", rarity: "legendary", catchRate: 2, desc: "The legendary machine guardian." },
+            { id: 50, name: "Omniscient", icon: "👁️", type: "psychic", rarity: "legendary", catchRate: 2, desc: "The legendary mind guardian." }
+        ];
+
+        // ===== Maze Size Thresholds =====
+        const SIZE_THRESHOLDS = [
+            { count: 0, baseSize: 13 },
+            { count: 5, baseSize: 15 },
+            { count: 10, baseSize: 19 },
+            { count: 15, baseSize: 21 },
+            { count: 25, baseSize: 25 }
+        ];
+
+        // ===== Game Constants =====
+        const GAME_ID = 'monv2-collection';
+        const ENEMY_ICONS = ['👻', '👾', '🤖', '👹'];
+        const ENEMY_COLORS = ['#e57373', '#ab47bc', '#5c9ce6', '#ff9800'];
+
+        // ===== Game State =====
+        let collection = {};
+        let currentStage = 1;
+        let currentMonster = null;
+        let currentUser = null;
+
+        // Run state (resets on game over)
+        let lives = 3;
+        let pokeballs = 0;
+        let catchAttempts = 0;
+        let caughtThisRun = 0;
+
+        // Maze state
+        let maze = [];
+        let mazeSize = 9;
+        let cellSize = 40;
+        let player = { x: 0, y: 0 };
+        let exit = { x: 0, y: 0 };
+        let items = [];
+        let canvas, ctx;
+
+        // Enemy state
+        let enemies = [];
+        let enemyMoveInterval = null;
+
+        // ===== Initialization =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            canvas = document.getElementById('mazeCanvas');
+            ctx = canvas.getContext('2d');
+
+            // 1. 몬스터 마스터 데이터 로드 (DB에서)
+            await loadMonstersFromDB();
+
+            // 2. 현재 유저 확인
+            currentUser = await getCurrentUser();
+
+            // 3. 컬렉션 로드 (로컬 → DB 동기화)
+            await loadCollection();
+            updateDisplays();
+
+            // 4. Setup controls
+            setupControls();
+
+            // 5. Setup collection tabs
+            setupDexTabs();
+
+            // 6. 인증 상태 변경 감지
+            if (typeof onAuthStateChange === 'function') {
+                onAuthStateChange(async (event, session) => {
+                    if (session?.user) {
+                        currentUser = session.user;
+                        await syncWithServer();
+                        updateDisplays();
+                    } else {
+                        currentUser = null;
+                    }
+                });
+            }
+
+            console.log('MonV2 initialized! Monsters loaded:', MONSTERS.length);
+        });
+
+        // ===== Display Updates =====
+        function updateDisplays() {
+            const collected = Object.keys(collection).length;
+            document.getElementById('stageDisplay').textContent = currentStage;
+            document.getElementById('collectedDisplay').textContent = `${collected}/50`;
+
+            const nickname = currentUser?.user_metadata?.nickname || '---';
+            document.getElementById('nicknameDisplay').textContent = nickname.substring(0, 6);
+        }
+
+        function updateHUD() {
+            // Hearts display
+            const fullHearts = Math.floor(lives);
+            const halfHeart = lives % 1 >= 0.5;
+            const emptyHearts = 3 - Math.ceil(lives);
+
+            let heartsHTML = '❤️'.repeat(fullHearts);
+            if (halfHeart) heartsHTML += '💔';
+            heartsHTML += '🖤'.repeat(emptyHearts);
+
+            document.getElementById('heartsDisplay').textContent = heartsHTML;
+            document.getElementById('pokeballCount').textContent = pokeballs;
+        }
+
+        // ===== Screen Management =====
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ===== Monster Database Loading =====
+        async function loadMonstersFromDB() {
+            try {
+                const monstersData = await getMonsters();
+                if (monstersData && monstersData.length > 0) {
+                    // DB 데이터를 게임 형식으로 변환
+                    MONSTERS = monstersData.map(m => ({
+                        id: m.id,
+                        name: m.name,
+                        icon: m.icon,
+                        type: m.type,
+                        rarity: m.rarity,
+                        catchRate: m.base_catch_rate,
+                        desc: m.description
+                    }));
+                    console.log('Monsters loaded from DB:', MONSTERS.length);
+                } else {
+                    console.warn('No monsters in DB, using fallback data');
+                }
+            } catch (error) {
+                console.error('Failed to load monsters from DB:', error);
+                console.log('Using fallback monster data');
+            }
+        }
+
+        // ===== Collection Functions =====
+        async function loadCollection() {
+            // 1. 로컬스토리지에서 먼저 로드
+            const saved = localStorage.getItem(GAME_ID);
+            if (saved) {
+                const data = JSON.parse(saved);
+                collection = data.collection || {};
+                currentStage = data.currentStage || 1;
+            }
+
+            // 2. 로그인 상태면 DB와 동기화
+            if (currentUser) {
+                await syncWithServer();
+            }
+        }
+
+        function saveCollection() {
+            localStorage.setItem(GAME_ID, JSON.stringify({
+                collection,
+                currentStage
+            }));
+        }
+
+        async function syncWithServer() {
+            if (!currentUser) return;
+
+            try {
+                // 새로운 API 사용: user_monsters 테이블에서 로드
+                const userMonsters = await getUserMonsters();
+
+                if (userMonsters && userMonsters.length > 0) {
+                    // DB 데이터를 로컬 collection 형태로 변환
+                    const dbCollection = {};
+                    for (const um of userMonsters) {
+                        dbCollection[um.monster_id] = {
+                            count: um.catch_count,
+                            firstCaught: um.caught_at
+                        };
+                    }
+
+                    // 로컬과 병합 (서버 우선)
+                    for (const [id, data] of Object.entries(dbCollection)) {
+                        if (!collection[id] || dbCollection[id].count > collection[id].count) {
+                            collection[id] = data;
+                        }
+                    }
+                }
+
+                // 진행도도 동기화
+                const progress = await loadUserProgress();
+                if (progress && progress.current_stage > currentStage) {
+                    currentStage = progress.current_stage;
+                }
+
+                // 병합된 데이터 로컬에 저장
+                saveCollection();
+
+                console.log('Synced with server. Collected:', Object.keys(collection).length);
+            } catch (e) {
+                console.error('Sync error:', e);
+            }
+        }
+
+        async function saveToServer() {
+            if (!currentUser) return;
+
+            // 새 API에서는 포획 시점에 catchMonster()를 호출하므로
+            // 이 함수는 진행도 업데이트만 수행
+            try {
+                await updateUserProgress(currentStage, false);
+            } catch (e) {
+                console.error('Save error:', e);
+            }
+        }
+
+        // ===== Game Functions =====
+        function startGame() {
+            lives = 3;
+            pokeballs = 0;
+            catchAttempts = 0;
+            caughtThisRun = 0;
+
+            generateMaze();
+            showScreen('mazeScreen');
+            updateHUD();
+            updateStageDisplay();
+        }
+
+        function restartGame() {
+            currentStage = 1;
+            saveCollection();
+            startGame();
+        }
+
+        function updateStageDisplay() {
+            const monster = MONSTERS[((currentStage - 1) % 50)];
+            currentMonster = monster;
+
+            document.getElementById('currentStage').textContent = currentStage;
+            document.getElementById('targetMonsterIcon').textContent = monster.icon;
+            document.getElementById('targetMonsterName').textContent = monster.name;
+        }
+
+        // ===== Maze Generation =====
+        function generateMaze() {
+            // Calculate size based on collection
+            const collectedCount = Object.keys(collection).length;
+            let baseSize = SIZE_THRESHOLDS[0].baseSize;
+            for (const threshold of SIZE_THRESHOLDS) {
+                if (collectedCount >= threshold.count) {
+                    baseSize = threshold.baseSize;
+                }
+            }
+
+            // Add stage bonus
+            const stageBonus = Math.floor((currentStage - 1) / 5) * 2;
+            mazeSize = Math.min(baseSize + stageBonus, 41);
+            if (mazeSize % 2 === 0) mazeSize++;
+
+            // Initialize maze grid
+            maze = [];
+            for (let y = 0; y < mazeSize; y++) {
+                maze[y] = [];
+                for (let x = 0; x < mazeSize; x++) {
+                    maze[y][x] = 1; // 1 = wall
+                }
+            }
+
+            // Generate maze using recursive backtracking
+            const stack = [];
+            const startX = 1, startY = 1;
+            maze[startY][startX] = 0;
+            stack.push({ x: startX, y: startY });
+
+            while (stack.length > 0) {
+                const current = stack[stack.length - 1];
+                const neighbors = [];
+
+                // Check all 4 directions
+                const dirs = [
+                    { dx: 0, dy: -2 },
+                    { dx: 2, dy: 0 },
+                    { dx: 0, dy: 2 },
+                    { dx: -2, dy: 0 }
+                ];
+
+                for (const dir of dirs) {
+                    const nx = current.x + dir.dx;
+                    const ny = current.y + dir.dy;
+                    if (nx > 0 && nx < mazeSize - 1 && ny > 0 && ny < mazeSize - 1 && maze[ny][nx] === 1) {
+                        neighbors.push({ x: nx, y: ny, wx: current.x + dir.dx / 2, wy: current.y + dir.dy / 2 });
+                    }
+                }
+
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    maze[next.wy][next.wx] = 0;
+                    maze[next.y][next.x] = 0;
+                    stack.push({ x: next.x, y: next.y });
+                } else {
+                    stack.pop();
+                }
+            }
+
+            // Add extra paths
+            const extraPaths = Math.floor(mazeSize * mazeSize * 0.15);
+            for (let i = 0; i < extraPaths; i++) {
+                const x = Math.floor(Math.random() * (mazeSize - 2)) + 1;
+                const y = Math.floor(Math.random() * (mazeSize - 2)) + 1;
+                if (maze[y][x] === 1) {
+                    const openNeighbors = [
+                        { x: x - 1, y }, { x: x + 1, y },
+                        { x, y: y - 1 }, { x, y: y + 1 }
+                    ].filter(n => n.x > 0 && n.x < mazeSize - 1 && n.y > 0 && n.y < mazeSize - 1 && maze[n.y][n.x] === 0);
+
+                    if (openNeighbors.length >= 2) {
+                        maze[y][x] = 0;
+                    }
+                }
+            }
+
+            // Set player and exit
+            player = { x: 1, y: 1 };
+            exit = { x: mazeSize - 2, y: mazeSize - 2 };
+            maze[exit.y][exit.x] = 0;
+
+            // Place items
+            placeItems();
+
+            // Place enemies
+            placeEnemies();
+
+            // Calculate cell size
+            const maxCanvasSize = Math.min(window.innerWidth - 40, 460);
+            cellSize = Math.max(Math.floor(maxCanvasSize / mazeSize), 12);
+
+            // Setup canvas
+            canvas.width = mazeSize * cellSize;
+            canvas.height = mazeSize * cellSize;
+
+            // Start enemy movement
+            startEnemyMovement();
+
+            // Draw
+            drawMaze();
+        }
+
+        function placeItems() {
+            items = [];
+            const availableCells = [];
+
+            for (let y = 1; y < mazeSize - 1; y++) {
+                for (let x = 1; x < mazeSize - 1; x++) {
+                    if (maze[y][x] === 0 && !(x === 1 && y === 1) && !(x === exit.x && y === exit.y)) {
+                        availableCells.push({ x, y });
+                    }
+                }
+            }
+
+            // Shuffle
+            for (let i = availableCells.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableCells[i], availableCells[j]] = [availableCells[j], availableCells[i]];
+            }
+
+            // Place pokeballs (3-10 based on stage)
+            const numPokeballs = Math.min(3 + Math.floor(currentStage / 3), 10);
+            for (let i = 0; i < numPokeballs && i < availableCells.length; i++) {
+                items.push({ ...availableCells[i], type: 'pokeball' });
+            }
+
+            // Place hearts (1-5)
+            const numHearts = Math.min(1 + Math.floor(currentStage / 5), 5);
+            for (let i = numPokeballs; i < numPokeballs + numHearts && i < availableCells.length; i++) {
+                items.push({ ...availableCells[i], type: 'heart' });
+            }
+        }
+
+        function placeEnemies() {
+            enemies = [];
+            const numEnemies = Math.min(1 + Math.floor(currentStage / 4), 4);
+
+            for (let i = 0; i < numEnemies; i++) {
+                let ex, ey;
+                do {
+                    ex = Math.floor(Math.random() * (mazeSize - 4)) + 2;
+                    ey = Math.floor(Math.random() * (mazeSize - 4)) + 2;
+                } while (
+                    maze[ey][ex] === 1 ||
+                    (Math.abs(ex - player.x) < 5 && Math.abs(ey - player.y) < 5)
+                );
+
+                enemies.push({
+                    x: ex,
+                    y: ey,
+                    icon: ENEMY_ICONS[i % ENEMY_ICONS.length],
+                    color: ENEMY_COLORS[i % ENEMY_COLORS.length],
+                    direction: Math.floor(Math.random() * 4)
+                });
+            }
+        }
+
+        function startEnemyMovement() {
+            if (enemyMoveInterval) clearInterval(enemyMoveInterval);
+
+            const baseSpeed = 500;
+            const speedReduction = Math.min(currentStage * 10, 200);
+            const moveSpeed = Math.max(baseSpeed - speedReduction, 200);
+
+            enemyMoveInterval = setInterval(moveEnemies, moveSpeed);
+        }
+
+        function moveEnemies() {
+            const dirs = [
+                { dx: 0, dy: -1 },
+                { dx: 1, dy: 0 },
+                { dx: 0, dy: 1 },
+                { dx: -1, dy: 0 }
+            ];
+
+            for (const enemy of enemies) {
+                // 70% chase, 30% random
+                if (Math.random() < 0.7) {
+                    const dx = player.x - enemy.x;
+                    const dy = player.y - enemy.y;
+
+                    const possibleDirs = [];
+                    if (dx > 0) possibleDirs.push(1);
+                    if (dx < 0) possibleDirs.push(3);
+                    if (dy > 0) possibleDirs.push(2);
+                    if (dy < 0) possibleDirs.push(0);
+
+                    if (possibleDirs.length > 0) {
+                        enemy.direction = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
+                    }
+                } else {
+                    enemy.direction = Math.floor(Math.random() * 4);
+                }
+
+                const dir = dirs[enemy.direction];
+                const nx = enemy.x + dir.dx;
+                const ny = enemy.y + dir.dy;
+
+                if (nx > 0 && nx < mazeSize - 1 && ny > 0 && ny < mazeSize - 1 && maze[ny][nx] === 0) {
+                    enemy.x = nx;
+                    enemy.y = ny;
+                }
+
+                // Check collision with player
+                if (enemy.x === player.x && enemy.y === player.y) {
+                    lives -= 1;
+                    updateHUD();
+                    document.querySelector('.game-container').classList.add('shake');
+                    setTimeout(() => document.querySelector('.game-container').classList.remove('shake'), 300);
+
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+
+            drawMaze();
+        }
+
+        // ===== Drawing =====
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw cells
+            for (let y = 0; y < mazeSize; y++) {
+                for (let x = 0; x < mazeSize; x++) {
+                    const px = x * cellSize;
+                    const py = y * cellSize;
+
+                    if (maze[y][x] === 1) {
+                        // Wall - earthy brown
+                        ctx.fillStyle = '#5c3d2e';
+                        ctx.fillRect(px, py, cellSize, cellSize);
+
+                        // Wall highlight
+                        ctx.fillStyle = '#8b5a2b';
+                        ctx.fillRect(px + 1, py + 1, cellSize - 2, 2);
+                        ctx.fillRect(px + 1, py + 1, 2, cellSize - 2);
+                    } else {
+                        // Floor - lighter tan
+                        ctx.fillStyle = '#dbc4a0';
+                        ctx.fillRect(px, py, cellSize, cellSize);
+
+                        // Floor pattern
+                        ctx.fillStyle = '#c4a574';
+                        ctx.fillRect(px + cellSize - 1, py, 1, cellSize);
+                        ctx.fillRect(px, py + cellSize - 1, cellSize, 1);
+                    }
+                }
+            }
+
+            // Draw exit
+            ctx.fillStyle = '#7cb342';
+            ctx.fillRect(exit.x * cellSize, exit.y * cellSize, cellSize, cellSize);
+            ctx.font = `${cellSize * 0.7}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚪', exit.x * cellSize + cellSize / 2, exit.y * cellSize + cellSize / 2);
+
+            // Draw items
+            for (const item of items) {
+                const icon = item.type === 'pokeball' ? '🔴' : '💊';
+                ctx.font = `${cellSize * 0.6}px Arial`;
+                ctx.fillText(icon, item.x * cellSize + cellSize / 2, item.y * cellSize + cellSize / 2);
+            }
+
+            // Draw enemies
+            for (const enemy of enemies) {
+                ctx.font = `${cellSize * 0.7}px Arial`;
+                ctx.fillText(enemy.icon, enemy.x * cellSize + cellSize / 2, enemy.y * cellSize + cellSize / 2);
+            }
+
+            // Draw player
+            ctx.font = `${cellSize * 0.7}px Arial`;
+            ctx.fillText('🧑', player.x * cellSize + cellSize / 2, player.y * cellSize + cellSize / 2);
+        }
+
+        // ===== Player Movement =====
+        function movePlayer(dx, dy) {
+            const nx = player.x + dx;
+            const ny = player.y + dy;
+
+            if (nx < 0 || nx >= mazeSize || ny < 0 || ny >= mazeSize) return;
+
+            if (maze[ny][nx] === 1) {
+                // Hit wall
+                lives -= 0.5;
+                updateHUD();
+                if (lives <= 0) {
+                    gameOver();
+                }
+                return;
+            }
+
+            player.x = nx;
+            player.y = ny;
+
+            // Check items
+            for (let i = items.length - 1; i >= 0; i--) {
+                if (items[i].x === nx && items[i].y === ny) {
+                    if (items[i].type === 'pokeball') {
+                        pokeballs++;
+                    } else if (items[i].type === 'heart') {
+                        lives = Math.min(lives + 1, 3);
+                    }
+                    items.splice(i, 1);
+                    updateHUD();
+                }
+            }
+
+            // Check enemy collision
+            for (const enemy of enemies) {
+                if (enemy.x === nx && enemy.y === ny) {
+                    lives -= 1;
+                    updateHUD();
+                    if (lives <= 0) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            // Check exit
+            if (nx === exit.x && ny === exit.y) {
+                encounterMonster();
+            }
+
+            drawMaze();
+        }
+
+        // ===== Controls =====
+        function setupControls() {
+            // Keyboard
+            document.addEventListener('keydown', (e) => {
+                if (!document.getElementById('mazeScreen').classList.contains('active')) return;
+
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W': movePlayer(0, -1); break;
+                    case 'ArrowDown': case 's': case 'S': movePlayer(0, 1); break;
+                    case 'ArrowLeft': case 'a': case 'A': movePlayer(-1, 0); break;
+                    case 'ArrowRight': case 'd': case 'D': movePlayer(1, 0); break;
+                }
+            });
+
+            // Mobile D-pad
+            document.querySelectorAll('.control-btn[data-dir]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const dir = btn.dataset.dir;
+                    switch (dir) {
+                        case 'up': movePlayer(0, -1); break;
+                        case 'down': movePlayer(0, 1); break;
+                        case 'left': movePlayer(-1, 0); break;
+                        case 'right': movePlayer(1, 0); break;
+                    }
+                });
+            });
+
+            // Touch swipe
+            let touchStartX, touchStartY;
+            canvas.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                const minSwipe = 30;
+
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipe) {
+                    movePlayer(dx > 0 ? 1 : -1, 0);
+                } else if (Math.abs(dy) > minSwipe) {
+                    movePlayer(0, dy > 0 ? 1 : -1);
+                }
+            }, { passive: true });
+        }
+
+        // ===== Encounter =====
+        function encounterMonster() {
+            if (enemyMoveInterval) clearInterval(enemyMoveInterval);
+
+            const monster = currentMonster;
+            document.getElementById('encounterIcon').textContent = monster.icon;
+            document.getElementById('encounterName').textContent = monster.name;
+            document.getElementById('encounterInfo').textContent = `타입: ${monster.type} | 등급: ${monster.rarity}`;
+            document.getElementById('encounterBalls').textContent = pokeballs;
+
+            document.getElementById('catchArea').style.display = 'block';
+            document.getElementById('catchResult').style.display = 'none';
+
+            showScreen('encounterScreen');
+        }
+
+        async function attemptCatch() {
+            catchAttempts++;
+            const monster = currentMonster;
+
+            // Calculate catch chance
+            let catchChance = monster.catchRate;
+            catchChance += pokeballs * 5; // +5% per pokeball
+            catchChance = Math.min(catchChance, 95);
+
+            const roll = Math.random() * 100;
+            const success = roll < catchChance;
+
+            const resultDiv = document.getElementById('catchResult');
+            document.getElementById('catchArea').style.display = 'none';
+            resultDiv.style.display = 'block';
+
+            // 로그 기록 (성공/실패 모두, 로그인 시)
+            if (currentUser) {
+                try {
+                    await logCatchAttempt(monster.id, currentStage, pokeballs, catchChance, lives, success);
+                } catch (e) {
+                    console.error('Failed to log catch attempt:', e);
+                }
+            }
+
+            if (success) {
+                resultDiv.className = 'catch-result success';
+                resultDiv.innerHTML = `🎉 ${monster.name} 포획 성공!<br><br>
+                    <button class="btn btn-primary" onclick="nextStage()">다음 스테이지</button>`;
+
+                // 1. 로컬 collection 업데이트
+                if (!collection[monster.id]) {
+                    collection[monster.id] = { count: 0, firstCaught: new Date().toISOString() };
+                }
+                collection[monster.id].count++;
+                caughtThisRun++;
+
+                // 2. 로컬스토리지 저장
+                saveCollection();
+
+                // 3. DB에 저장 (로그인 시)
+                if (currentUser) {
+                    try {
+                        await catchMonster(monster.id, currentStage, pokeballs, catchChance, lives);
+                        console.log(`${monster.name} saved to DB!`);
+                    } catch (e) {
+                        console.error('Failed to save catch to DB:', e);
+                        // 실패해도 로컬에는 저장되어 있으므로 계속 진행
+                    }
+                }
+
+                updateDisplays();
+            } else {
+                if (pokeballs > 0) {
+                    pokeballs--;
+                    resultDiv.className = 'catch-result fail';
+                    resultDiv.innerHTML = `포획 실패... 남은 볼: ${pokeballs}개<br><br>
+                        <button class="btn btn-primary" onclick="retryFromEncounter()">재시도</button>
+                        <button class="btn btn-danger" onclick="fleeEncounter()">도망</button>`;
+                } else {
+                    resultDiv.className = 'catch-result fail';
+                    resultDiv.innerHTML = `포획 실패! 몬스터볼이 없습니다.<br><br>
+                        <button class="btn btn-primary" onclick="nextStage()">다음 스테이지</button>`;
+                }
+            }
+        }
+
+        function retryFromEncounter() {
+            document.getElementById('catchArea').style.display = 'block';
+            document.getElementById('catchResult').style.display = 'none';
+            document.getElementById('encounterBalls').textContent = pokeballs;
+        }
+
+        function fleeEncounter() {
+            nextStage();
+        }
+
+        async function nextStage() {
+            currentStage++;
+            pokeballs = 0;
+            saveCollection();
+
+            // DB에 진행도 저장 (로그인 시)
+            if (currentUser) {
+                try {
+                    await updateUserProgress(currentStage, false);
+                } catch (e) {
+                    console.error('Failed to update progress:', e);
+                }
+            }
+
+            generateMaze();
+            showScreen('mazeScreen');
+            updateHUD();
+            updateStageDisplay();
+            updateDisplays();
+        }
+
+        async function gameOver() {
+            if (enemyMoveInterval) clearInterval(enemyMoveInterval);
+
+            document.getElementById('finalStage').textContent = currentStage;
+            document.getElementById('finalCollection').textContent = `${Object.keys(collection).length}/50`;
+            document.getElementById('finalCatches').textContent = caughtThisRun;
+
+            // 게임오버 횟수 DB에 기록
+            if (currentUser) {
+                try {
+                    await updateUserProgress(currentStage, true); // true = 게임오버 카운트 증가
+                } catch (e) {
+                    console.error('Failed to update game over count:', e);
+                }
+            }
+
+            showScreen('gameoverScreen');
+        }
+
+        // ===== Collection Screen =====
+        function showCollection() {
+            renderDex('all');
+            showScreen('collectionScreen');
+        }
+
+        function closeCollection() {
+            showScreen('menuScreen');
+        }
+
+        function setupDexTabs() {
+            document.querySelectorAll('.dex-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.dex-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderDex(tab.dataset.filter);
+                });
+            });
+        }
+
+        function renderDex(filter) {
+            const grid = document.getElementById('dexGrid');
+            grid.innerHTML = '';
+
+            let monsters = MONSTERS;
+            if (filter === 'owned') {
+                monsters = MONSTERS.filter(m => collection[m.id]);
+            } else if (filter === 'missing') {
+                monsters = MONSTERS.filter(m => !collection[m.id]);
+            }
+
+            for (const monster of monsters) {
+                const owned = !!collection[monster.id];
+                const card = document.createElement('div');
+                card.className = `dex-item ${owned ? 'owned' : 'missing'}`;
+                card.innerHTML = `
+                    <div class="dex-item-icon">${owned ? monster.icon : '❓'}</div>
+                    <div class="dex-item-name">${owned ? monster.name : '???'}</div>
+                    <div class="dex-item-id">#${String(monster.id).padStart(3, '0')}</div>
+                `;
+                card.onclick = () => showMonsterDetail(monster, owned);
+                grid.appendChild(card);
+            }
+        }
+
+        function showMonsterDetail(monster, owned) {
+            document.getElementById('modalIcon').textContent = owned ? monster.icon : '❓';
+            document.getElementById('modalName').textContent = owned ? monster.name : '???';
+
+            const typeEl = document.getElementById('modalType');
+            typeEl.textContent = monster.type;
+            typeEl.style.background = `var(--type-${monster.type})`;
+
+            const rarityEl = document.getElementById('modalRarity');
+            rarityEl.textContent = monster.rarity;
+            rarityEl.style.background = `var(--rarity-${monster.rarity})`;
+
+            document.getElementById('modalDesc').textContent = owned ? monster.desc : '아직 발견하지 못한 몬스터입니다.';
+
+            if (owned && collection[monster.id]) {
+                const data = collection[monster.id];
+                const firstDate = new Date(data.firstCaught).toLocaleDateString('ko-KR');
+                document.getElementById('modalStats').innerHTML = `포획 횟수: ${data.count}회<br>첫 포획: ${firstDate}`;
+            } else {
+                document.getElementById('modalStats').innerHTML = '포획 횟수: 0회<br>첫 포획: -';
+            }
+
+            document.getElementById('monsterModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('monsterModal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.getElementById('monsterModal').addEventListener('click', (e) => {
+            if (e.target.id === 'monsterModal') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

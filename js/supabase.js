@@ -216,3 +216,268 @@ async function loadGameCollection(gameId) {
     if (error && error.code !== 'PGRST116') throw error;
     return data;
 }
+
+// ============================================
+// MonV2 전용 API 함수들
+// ============================================
+
+// 몬스터 마스터 데이터 로드
+async function getMonsters() {
+    const client = await initSupabase();
+    const { data, error } = await client
+        .from('monsters')
+        .select('*')
+        .order('id');
+
+    if (error) throw error;
+    return data || [];
+}
+
+// 사용자 소유 몬스터 조회
+async function getUserMonsters() {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) return [];
+
+    const { data, error } = await client
+        .from('user_monsters')
+        .select(`
+            id,
+            monster_id,
+            caught_at,
+            catch_stage,
+            catch_count,
+            level,
+            experience,
+            is_fusion,
+            nickname,
+            is_favorite,
+            monsters (
+                id,
+                name,
+                icon,
+                type,
+                rarity,
+                description
+            )
+        `)
+        .eq('user_id', user.id)
+        .order('caught_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+}
+
+// 몬스터 포획 기록 (성공 시만)
+async function catchMonster(monsterId, stage, pokeballs, catchProbability, livesRemaining) {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) {
+        console.log('로그인이 필요합니다.');
+        return null;
+    }
+
+    try {
+        // 1. 이미 소유한 몬스터인지 확인
+        const { data: existing, error: selectError } = await client
+            .from('user_monsters')
+            .select('id, catch_count')
+            .eq('user_id', user.id)
+            .eq('monster_id', monsterId)
+            .single();
+
+        if (selectError && selectError.code !== 'PGRST116') {
+            throw selectError;
+        }
+
+        if (existing) {
+            // 이미 있으면 catch_count 증가
+            const { error: updateError } = await client
+                .from('user_monsters')
+                .update({
+                    catch_count: existing.catch_count + 1,
+                    last_updated: new Date().toISOString()
+                })
+                .eq('id', existing.id);
+
+            if (updateError) throw updateError;
+        } else {
+            // 새로 추가
+            const { error: insertError } = await client
+                .from('user_monsters')
+                .insert({
+                    user_id: user.id,
+                    monster_id: monsterId,
+                    catch_stage: stage,
+                    catch_count: 1,
+                    caught_at: new Date().toISOString()
+                });
+
+            if (insertError) throw insertError;
+        }
+
+        // 2. 포획 이벤트 로그 기록 (옵셔널)
+        await client
+            .from('monster_catches')
+            .insert({
+                user_id: user.id,
+                monster_id: monsterId,
+                stage: stage,
+                success: true,
+                pokeballs_used: pokeballs,
+                catch_probability: catchProbability,
+                lives_remaining: livesRemaining
+            });
+
+        // 3. 진행도 업데이트
+        await updateUserProgress(stage);
+
+        return true;
+    } catch (error) {
+        console.error('포획 기록 중 오류:', error);
+        throw error;
+    }
+}
+
+// 포획 실패 기록 (옵셔널)
+async function logCatchAttempt(monsterId, stage, pokeballs, catchProbability, livesRemaining, success) {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) return null;
+
+    const { error } = await client
+        .from('monster_catches')
+        .insert({
+            user_id: user.id,
+            monster_id: monsterId,
+            stage: stage,
+            success: success,
+            pokeballs_used: pokeballs,
+            catch_probability: catchProbability,
+            lives_remaining: livesRemaining
+        });
+
+    if (error) console.error('포획 시도 로그 실패:', error);
+}
+
+// 사용자 진행도 업데이트
+async function updateUserProgress(currentStage, gameOverIncrement = false) {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) return null;
+
+    try {
+        // 현재 소유 몬스터 수 계산
+        const { data: monsters, error: monstersError } = await client
+            .from('user_monsters')
+            .select('monster_id, catch_count')
+            .eq('user_id', user.id);
+
+        if (monstersError) throw monstersError;
+
+        const uniqueMonsters = new Set(monsters.map(m => m.monster_id)).size;
+        const totalCatches = monsters.reduce((sum, m) => sum + m.catch_count, 0);
+
+        // 기존 진행도 확인
+        const { data: existing, error: selectError } = await client
+            .from('user_progress')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('game_id', 'monv2')
+            .single();
+
+        if (selectError && selectError.code !== 'PGRST116') {
+            throw selectError;
+        }
+
+        const updateData = {
+            user_id: user.id,
+            game_id: 'monv2',
+            current_stage: currentStage,
+            highest_stage: existing ? Math.max(existing.highest_stage, currentStage) : currentStage,
+            unique_monsters: uniqueMonsters,
+            total_catches: totalCatches,
+            total_game_overs: existing ? (existing.total_game_overs + (gameOverIncrement ? 1 : 0)) : (gameOverIncrement ? 1 : 0),
+            last_played_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        // UPSERT
+        const { error: upsertError } = await client
+            .from('user_progress')
+            .upsert(updateData, {
+                onConflict: 'user_id'
+            });
+
+        if (upsertError) throw upsertError;
+
+        return true;
+    } catch (error) {
+        console.error('진행도 업데이트 중 오류:', error);
+        throw error;
+    }
+}
+
+// 사용자 진행도 로드
+async function loadUserProgress() {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) return null;
+
+    const { data, error } = await client
+        .from('user_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('game_id', 'monv2')
+        .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+}
+
+// 사용자 컬렉션 요약 정보
+async function getCollectionSummary() {
+    const client = await initSupabase();
+    const user = await getCurrentUser();
+
+    if (!user) return null;
+
+    const { data, error } = await client
+        .from('v_user_collection_summary')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+}
+
+// MonV2 랭킹 (highest_stage 기준)
+async function getMonV2Leaderboard(limit = 10) {
+    const client = await initSupabase();
+
+    const { data, error } = await client
+        .from('user_progress')
+        .select(`
+            user_id,
+            highest_stage,
+            unique_monsters,
+            total_catches,
+            last_played_at
+        `)
+        .eq('game_id', 'monv2')
+        .order('highest_stage', { ascending: false })
+        .order('unique_monsters', { ascending: false })
+        .limit(limit);
+
+    if (error) throw error;
+
+    // 닉네임 가져오기 (auth.users는 직접 조회 불가, user_metadata 사용 불가)
+    // 대신 scores 테이블에서 닉네임 조회하거나 별도 처리 필요
+    return data || [];
+}
