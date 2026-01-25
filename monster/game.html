@@ -886,16 +886,31 @@
         }
 
         // Get monster for current stage
+        // Preserves stage-monster mapping: stages 1-30 use original monsters, 31-50 use new monsters
         function getStageMonster(stage) {
-            const totalMonsters = MONSTERS.length; // 50
-            const indexInCycle = (stage - 1) % totalMonsters;
+            const rarityOrder = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
 
-            const orderedMonsters = [...MONSTERS].sort((a, b) => {
-                const rarityOrder = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
-                return rarityOrder[a.rarity] - rarityOrder[b.rarity];
-            });
+            // Separate original monsters (id 1-30) and new monsters (id 31-50)
+            const originalMonsters = MONSTERS.filter(m => m.id <= 30);
+            const newMonsters = MONSTERS.filter(m => m.id > 30);
 
-            return orderedMonsters[indexInCycle];
+            // Sort each group by rarity
+            const sortedOriginal = [...originalMonsters].sort((a, b) =>
+                rarityOrder[a.rarity] - rarityOrder[b.rarity]
+            );
+            const sortedNew = [...newMonsters].sort((a, b) =>
+                rarityOrder[a.rarity] - rarityOrder[b.rarity]
+            );
+
+            // Stages 1-30: original monsters, 31-50: new monsters, 51+: cycle repeats
+            const cycleLength = sortedOriginal.length + sortedNew.length;
+            const indexInCycle = (stage - 1) % cycleLength;
+
+            if (indexInCycle < sortedOriginal.length) {
+                return sortedOriginal[indexInCycle];
+            } else {
+                return sortedNew[indexInCycle - sortedOriginal.length];
+            }
         }
 
         // Maze Generation with multiple paths (removes dead ends)
