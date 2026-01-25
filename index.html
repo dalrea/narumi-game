@@ -311,6 +311,127 @@
             .notice-item {
                 padding: 14px;
             }
+            .feedback-popup {
+                padding: 20px;
+            }
+        }
+        /* 피드백 버튼 */
+        .btn-feedback {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            border: none;
+        }
+        .btn-feedback:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(196, 69, 105, 0.4);
+        }
+        /* 피드백 모달 */
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .feedback-popup {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .feedback-title {
+            color: #fff;
+            font-size: 22px;
+        }
+        .feedback-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .feedback-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 15px;
+            resize: none;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+        .feedback-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .feedback-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .feedback-cancel {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .feedback-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .feedback-submit {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .feedback-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(196, 69, 105, 0.4);
+        }
+        .feedback-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .feedback-status {
+            text-align: center;
+            padding: 20px;
+            color: #fff;
+        }
+        .feedback-status.success {
+            color: #4ecdc4;
+        }
+        .feedback-status.error {
+            color: #ff6b6b;
         }
     </style>
 </head>
@@ -363,6 +484,29 @@
                 <span class="nickname" id="userNickname">닉네임</span>
             </div>
             <button class="auth-btn btn-logout hidden" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
+            <button class="auth-btn btn-feedback" onclick="openFeedback()">💌 편지</button>
+        </div>
+    </div>
+
+    <!-- 피드백 모달 -->
+    <div class="feedback-overlay hidden" id="feedbackModal">
+        <div class="feedback-popup">
+            <div class="feedback-header">
+                <div class="feedback-title">💌 개발자에게 편지 보내기</div>
+                <button class="notice-close" onclick="closeFeedback()">×</button>
+            </div>
+            <div id="feedbackForm">
+                <p class="feedback-desc">
+                    게임에 대한 의견, 버그 제보, 추가했으면 하는 기능 등<br>
+                    무엇이든 자유롭게 적어주세요!
+                </p>
+                <textarea class="feedback-textarea" id="feedbackText" placeholder="여기에 메시지를 작성해주세요..."></textarea>
+                <div class="feedback-footer">
+                    <button class="feedback-cancel" onclick="closeFeedback()">취소</button>
+                    <button class="feedback-submit" id="feedbackSubmit" onclick="sendFeedback()">보내기</button>
+                </div>
+            </div>
+            <div id="feedbackResult" class="hidden"></div>
         </div>
     </div>
 
@@ -489,6 +633,104 @@
 
         // 공지 확인
         checkNotice();
+
+        // 피드백 관련
+        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1464893860202287206/x3eRMSSx671c6M3NGqj4LAh1Su-S5b4e5PY-zt2k8TsVCNElwYH_OeonPn7wAVaK8UIt';
+
+        function openFeedback() {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+            document.getElementById('feedbackForm').classList.remove('hidden');
+            document.getElementById('feedbackResult').classList.add('hidden');
+            document.getElementById('feedbackText').value = '';
+            document.getElementById('feedbackText').focus();
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedbackModal').classList.add('hidden');
+        }
+
+        async function sendFeedback() {
+            const text = document.getElementById('feedbackText').value.trim();
+            if (!text) {
+                alert('메시지를 입력해주세요!');
+                return;
+            }
+
+            const submitBtn = document.getElementById('feedbackSubmit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '보내는 중...';
+
+            try {
+                // 유저 정보 가져오기
+                const user = await getCurrentUser();
+                const nickname = user ? (user.user_metadata?.nickname || user.email.split('@')[0]) : '익명';
+
+                // Discord로 전송
+                const response = await fetch(DISCORD_WEBHOOK, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        embeds: [{
+                            title: '💌 새 피드백이 도착했어요!',
+                            description: text,
+                            color: 0xff6b9d,
+                            fields: [
+                                {
+                                    name: '보낸 사람',
+                                    value: nickname,
+                                    inline: true
+                                },
+                                {
+                                    name: '시간',
+                                    value: new Date().toLocaleString('ko-KR'),
+                                    inline: true
+                                }
+                            ],
+                            footer: {
+                                text: 'Simsim Games 피드백'
+                            }
+                        }]
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('feedbackForm').classList.add('hidden');
+                    document.getElementById('feedbackResult').classList.remove('hidden');
+                    document.getElementById('feedbackResult').className = 'feedback-status success';
+                    document.getElementById('feedbackResult').innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 15px;">💝</div>
+                        <div style="font-size: 18px; margin-bottom: 10px;">감사합니다!</div>
+                        <div style="font-size: 14px; opacity: 0.8;">소중한 의견 잘 받았어요.</div>
+                        <button class="notice-btn" style="margin-top: 20px;" onclick="closeFeedback()">닫기</button>
+                    `;
+                } else {
+                    throw new Error('전송 실패');
+                }
+            } catch (error) {
+                console.error('피드백 전송 실패:', error);
+                document.getElementById('feedbackForm').classList.add('hidden');
+                document.getElementById('feedbackResult').classList.remove('hidden');
+                document.getElementById('feedbackResult').className = 'feedback-status error';
+                document.getElementById('feedbackResult').innerHTML = `
+                    <div style="font-size: 48px; margin-bottom: 15px;">😢</div>
+                    <div style="font-size: 18px; margin-bottom: 10px;">전송에 실패했어요</div>
+                    <div style="font-size: 14px; opacity: 0.8;">잠시 후 다시 시도해주세요.</div>
+                    <button class="notice-btn" style="margin-top: 20px;" onclick="openFeedback()">다시 시도</button>
+                `;
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '보내기';
+        }
+
+        // 모달 바깥 클릭시 닫기
+        document.getElementById('feedbackModal').addEventListener('click', (e) => {
+            if (e.target.id === 'feedbackModal') {
+                closeFeedback();
+            }
+        });
     </script>
 </body>
 </html>
