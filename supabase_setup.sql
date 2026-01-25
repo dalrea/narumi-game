@@ -38,3 +38,33 @@ SELECT DISTINCT ON (game_id, user_id)
     created_at
 FROM scores
 ORDER BY game_id, user_id, score DESC;
+
+-- 6. game_collections 테이블 생성 (컬렉션 동기화용)
+CREATE TABLE IF NOT EXISTS game_collections (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    game_id TEXT NOT NULL,
+    collection_data JSONB NOT NULL DEFAULT '{}',
+    current_stage INTEGER DEFAULT 1,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, game_id)
+);
+
+-- 7. game_collections 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_game_collections_user_game ON game_collections(user_id, game_id);
+
+-- 8. game_collections RLS 활성화
+ALTER TABLE game_collections ENABLE ROW LEVEL SECURITY;
+
+-- 9. game_collections RLS 정책 설정
+-- 로그인한 사용자만 자신의 컬렉션 조회 가능
+CREATE POLICY "Users can view own collections" ON game_collections
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- 로그인한 사용자만 자신의 컬렉션 추가 가능
+CREATE POLICY "Users can insert own collections" ON game_collections
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 로그인한 사용자만 자신의 컬렉션 수정 가능
+CREATE POLICY "Users can update own collections" ON game_collections
+    FOR UPDATE USING (auth.uid() = user_id);

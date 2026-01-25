@@ -801,7 +801,7 @@
             canvas = document.getElementById('mazeCanvas');
             ctx = canvas.getContext('2d');
 
-            loadCollection();
+            await loadCollection();
             await updateUserInfo();
             setupKeyboardControls();
             setupTouchControls();
@@ -809,10 +809,36 @@
         }
 
         // Load/Save collection
-        function loadCollection() {
+        async function loadCollection() {
+            // First load from localStorage
             const saved = localStorage.getItem('monsterCollection');
             if (saved) collection = JSON.parse(saved);
             currentStage = parseInt(localStorage.getItem('monsterStage')) || 1;
+
+            // If logged in, try to load from Supabase (cloud data takes priority)
+            try {
+                const user = await getCurrentUser();
+                if (user) {
+                    const cloudData = await loadGameCollection(GAME_ID);
+                    if (cloudData && cloudData.collection_data) {
+                        // Merge: cloud data takes priority, but keep local data for new monsters
+                        const cloudCollection = cloudData.collection_data;
+                        // Use cloud data as base, merge with local
+                        for (const id in cloudCollection) {
+                            collection[id] = cloudCollection[id];
+                        }
+                        // Keep local-only data (monsters caught while offline)
+                        // Local data is already in collection, cloud data overwrites
+
+                        currentStage = Math.max(currentStage, cloudData.current_stage || 1);
+                        // Save merged data back to localStorage
+                        localStorage.setItem('monsterCollection', JSON.stringify(collection));
+                        localStorage.setItem('monsterStage', currentStage);
+                    }
+                }
+            } catch (e) {
+                console.log('Cloud load failed, using local data:', e);
+            }
         }
 
         function saveCollection() {
@@ -1673,6 +1699,8 @@
             try {
                 const completionScore = Object.keys(collection).length;
                 await saveScore(GAME_ID, completionScore);
+                // Also save collection data to cloud
+                await saveGameCollection(GAME_ID, collection, currentStage);
             } catch (e) {
                 console.log('Save failed:', e);
             }
