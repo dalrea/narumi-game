@@ -795,20 +795,21 @@
 
         // 유저 진행도 로드
         async function loadUserProgress() {
+            // 먼저 로컬 스토리지에서 로드
+            const saved = localStorage.getItem('flappyProgress');
+            if (saved) {
+                userProgress = JSON.parse(saved);
+            }
+            const savedUnlocked = localStorage.getItem('flappyUnlocked');
+            if (savedUnlocked) {
+                unlockedItems = JSON.parse(savedUnlocked);
+            }
+            const savedEquipped = localStorage.getItem('flappyEquipped');
+            if (savedEquipped) {
+                equippedItems = JSON.parse(savedEquipped);
+            }
+
             if (!currentUser) {
-                // 로컬 스토리지에서 로드
-                const saved = localStorage.getItem('flappyProgress');
-                if (saved) {
-                    userProgress = JSON.parse(saved);
-                }
-                const savedUnlocked = localStorage.getItem('flappyUnlocked');
-                if (savedUnlocked) {
-                    unlockedItems = JSON.parse(savedUnlocked);
-                }
-                const savedEquipped = localStorage.getItem('flappyEquipped');
-                if (savedEquipped) {
-                    equippedItems = JSON.parse(savedEquipped);
-                }
                 return;
             }
 
@@ -821,11 +822,12 @@
                     .single();
 
                 if (progressData) {
+                    // 서버 데이터와 로컬 데이터 중 더 큰 값 사용 (병합)
                     userProgress = {
-                        total_games: progressData.total_games || 0,
-                        total_score: progressData.total_score || 0,
-                        total_pipes: progressData.total_pipes || 0,
-                        best_score: progressData.best_score || 0
+                        total_games: Math.max(progressData.total_games || 0, userProgress.total_games || 0),
+                        total_score: Math.max(progressData.total_score || 0, userProgress.total_score || 0),
+                        total_pipes: Math.max(progressData.total_pipes || 0, userProgress.total_pipes || 0),
+                        best_score: Math.max(progressData.best_score || 0, userProgress.best_score || 0)
                     };
                     equippedItems = {
                         hat: progressData.equipped_hat,
@@ -842,8 +844,13 @@
                     .eq('user_id', currentUser.id);
 
                 if (itemsData) {
-                    unlockedItems = itemsData.map(i => i.item_id);
+                    const serverUnlockedItems = itemsData.map(i => i.item_id);
+                    // 로컬과 서버의 해금 아이템 병합 (중복 제거)
+                    unlockedItems = [...new Set([...unlockedItems, ...serverUnlockedItems])];
                 }
+
+                // 병합된 데이터를 로컬에 저장
+                await saveUserProgress();
             } catch (e) {
                 console.log('유저 진행도 로드 실패:', e);
             }
@@ -885,11 +892,22 @@
 
             if (currentUser) {
                 try {
-                    await supabase.from('user_flappy_items').insert({
-                        user_id: currentUser.id,
-                        item_id: itemId
-                    });
+                    // upsert 대신 먼저 존재 여부 확인 후 insert
+                    const { data: existing } = await supabase
+                        .from('user_flappy_items')
+                        .select('item_id')
+                        .eq('user_id', currentUser.id)
+                        .eq('item_id', itemId)
+                        .single();
+
+                    if (!existing) {
+                        await supabase.from('user_flappy_items').insert({
+                            user_id: currentUser.id,
+                            item_id: itemId
+                        });
+                    }
                 } catch (e) {
+                    // 에러는 무시 (이미 존재하거나 네트워크 오류)
                     console.log('아이템 해금 저장 실패:', e);
                 }
             }
@@ -900,8 +918,14 @@
         async function checkUnlocks(score, pipes) {
             const newUnlocks = [];
 
+            console.log('[CheckUnlocks] 현재 해금된 아이템:', unlockedItems);
+            console.log('[CheckUnlocks] 현재 진행도:', userProgress);
+
             for (const item of allItems) {
-                if (unlockedItems.includes(item.id)) continue;
+                if (unlockedItems.includes(item.id)) {
+                    console.log(`[CheckUnlocks] ${item.name} (ID: ${item.id}) - 이미 해금됨, 건너뜀`);
+                    continue;
+                }
 
                 let shouldUnlock = false;
 
@@ -924,13 +948,18 @@
                 }
 
                 if (shouldUnlock) {
+                    console.log(`[CheckUnlocks] ${item.name} (ID: ${item.id}) - 해금 조건 만족!`);
                     const unlocked = await unlockItem(item.id);
                     if (unlocked) {
+                        console.log(`[CheckUnlocks] ${item.name} (ID: ${item.id}) - 새로 해금됨`);
                         newUnlocks.push(item);
+                    } else {
+                        console.log(`[CheckUnlocks] ${item.name} (ID: ${item.id}) - 해금 시도했지만 이미 해금되어 있음`);
                     }
                 }
             }
 
+            console.log('[CheckUnlocks] 새로 해금된 아이템:', newUnlocks);
             return newUnlocks;
         }
 
