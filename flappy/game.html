@@ -935,6 +935,12 @@
 
         // 해금 조건 체크
         async function checkUnlocks(score, pipes) {
+            // localStorage에서 최신 해금 정보 다시 로드 (동기화 보장)
+            const savedUnlocked = localStorage.getItem('flappyUnlocked');
+            if (savedUnlocked) {
+                unlockedItems = JSON.parse(savedUnlocked);
+            }
+
             const newUnlocks = [];
 
             for (const item of allItems) {
