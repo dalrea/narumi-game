@@ -883,6 +883,125 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="../js/supabase.js"></script>
     <script>
+        // ===== Field Maps =====
+        const FIELD_MAPS = {
+            1: {
+                name: '작은 농장',
+                width: 640,
+                height: 480,
+                tileSize: 40,
+                obstacles: [
+                    // Trees around the edges
+                    {x: 100, y: 80, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 200, y: 80, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 400, y: 80, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 500, y: 80, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 100, y: 380, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 500, y: 380, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    // Rocks scattered
+                    {x: 150, y: 200, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 400, y: 250, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 300, y: 350, width: 24, height: 24, type: 'rock', icon: '🪨'}
+                ],
+                exitZone: {x: 600, y: 440, width: 40, height: 40},
+                spawnPos: {x: 80, y: 80}
+            },
+            2: {
+                name: '숲',
+                width: 800,
+                height: 600,
+                tileSize: 40,
+                obstacles: [
+                    // Many trees
+                    {x: 120, y: 100, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 240, y: 120, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 360, y: 100, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 480, y: 140, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 600, y: 110, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 180, y: 280, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 320, y: 300, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 520, y: 290, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 680, y: 310, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 140, y: 460, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 400, y: 480, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 650, y: 470, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    // Some rocks
+                    {x: 200, y: 200, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 450, y: 220, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 300, y: 400, width: 24, height: 24, type: 'rock', icon: '🪨'}
+                ],
+                exitZone: {x: 750, y: 550, width: 50, height: 50},
+                spawnPos: {x: 100, y: 100}
+            },
+            3: {
+                name: '초원',
+                width: 800,
+                height: 600,
+                tileSize: 40,
+                obstacles: [
+                    // Fewer obstacles - more open
+                    {x: 200, y: 150, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 600, y: 200, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 350, y: 350, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 150, y: 450, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 500, y: 400, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 650, y: 450, width: 24, height: 24, type: 'rock', icon: '🪨'}
+                ],
+                exitZone: {x: 740, y: 540, width: 60, height: 60},
+                spawnPos: {x: 100, y: 100}
+            },
+            4: {
+                name: '호수 필드',
+                width: 1024,
+                height: 768,
+                tileSize: 40,
+                obstacles: [
+                    // Trees around lake area
+                    {x: 200, y: 150, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 300, y: 140, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 800, y: 180, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 900, y: 160, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 150, y: 500, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 350, y: 520, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 750, y: 540, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 900, y: 560, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    // Rocks
+                    {x: 400, y: 300, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 600, y: 350, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 450, y: 450, width: 24, height: 24, type: 'rock', icon: '🪨'}
+                ],
+                exitZone: {x: 960, y: 710, width: 64, height: 58},
+                spawnPos: {x: 120, y: 120}
+            },
+            5: {
+                name: '큰 농장',
+                width: 1024,
+                height: 768,
+                tileSize: 40,
+                obstacles: [
+                    // Farm-like layout with trees
+                    {x: 150, y: 120, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 250, y: 120, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 850, y: 120, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 920, y: 140, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 160, y: 380, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 320, y: 400, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 720, y: 380, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 880, y: 400, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 200, y: 640, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    {x: 500, y: 660, width: 32, height: 32, type: 'tree', icon: '🌳'},
+                    {x: 800, y: 650, width: 32, height: 32, type: 'tree', icon: '🌲'},
+                    // Rocks
+                    {x: 400, y: 250, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 650, y: 280, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 450, y: 500, width: 24, height: 24, type: 'rock', icon: '🪨'},
+                    {x: 700, y: 520, width: 24, height: 24, type: 'rock', icon: '🪨'}
+                ],
+                exitZone: {x: 950, y: 700, width: 74, height: 68},
+                spawnPos: {x: 120, y: 120}
+            }
+        };
+
         // ===== Monster Database (DB에서 로드) =====
         let MONSTERS = [
             // 폴백 데이터 (DB 로드 실패 시)
@@ -952,6 +1071,17 @@
         const ENEMY_ICONS = ['👻', '👾', '🤖', '👹'];
         const ENEMY_COLORS = ['#e57373', '#ab47bc', '#5c9ce6', '#ff9800'];
 
+        // Movement constants
+        const PLAYER_SPEED = 120;        // Pixels per second
+        const PLAYER_HITBOX = 24;        // Pixels (square)
+        const ENEMY_SPEED_BASE = 80;     // Slower than player
+        const ENEMY_SPEED_MULT = 1.1;    // Per stage multiplier
+
+        // Camera constants
+        const VIEWPORT_WIDTH = 480;
+        const VIEWPORT_HEIGHT = 360;
+        const CAMERA_SMOOTHING = 0.1;    // Lerp factor
+
         // ===== Game State =====
         let collection = {};
         let currentStage = 1;
@@ -964,18 +1094,41 @@
         let catchAttempts = 0;
         let caughtThisRun = 0;
 
-        // Maze state
+        // Field/Map state
+        let currentField = null;
+        let fieldWidth = 640;
+        let fieldHeight = 480;
+        let obstacles = [];
+        let player = { x: 0, y: 0, vx: 0, vy: 0, speed: PLAYER_SPEED };
+        let exitZone = { x: 0, y: 0, width: 0, height: 0 };
+        let items = [];
+        let canvas, ctx;
+
+        // Legacy maze variables (kept for compatibility during transition)
         let maze = [];
         let mazeSize = 9;
         let cellSize = 40;
-        let player = { x: 0, y: 0 };
         let exit = { x: 0, y: 0 };
-        let items = [];
-        let canvas, ctx;
 
         // Enemy state
         let enemies = [];
         let enemyMoveInterval = null;
+
+        // Game loop state
+        let lastTime = 0;
+        let gameRunning = false;
+        let animationFrameId = null;
+
+        // Keyboard input state
+        const keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // Camera state
+        let camera = { x: 0, y: 0 };
 
         // ===== Initialization =====
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1151,7 +1304,13 @@
             catchAttempts = 0;
             caughtThisRun = 0;
 
-            generateMaze();
+            // Reset keyboard state
+            keys.up = false;
+            keys.down = false;
+            keys.left = false;
+            keys.right = false;
+
+            generateField();
             showScreen('mazeScreen');
             updateHUD();
             updateStageDisplay();
@@ -1172,163 +1331,168 @@
             document.getElementById('targetMonsterName').textContent = monster.name;
         }
 
-        // ===== Maze Generation =====
-        function generateMaze() {
-            // Calculate size based on collection
-            const collectedCount = Object.keys(collection).length;
-            let baseSize = SIZE_THRESHOLDS[0].baseSize;
-            for (const threshold of SIZE_THRESHOLDS) {
-                if (collectedCount >= threshold.count) {
-                    baseSize = threshold.baseSize;
-                }
-            }
+        // ===== Field Generation =====
+        function generateField() {
+            // Select field map based on stage (cycle through 5 maps)
+            const mapIndex = ((currentStage - 1) % 5) + 1;
+            currentField = FIELD_MAPS[mapIndex];
 
-            // Add stage bonus
-            const stageBonus = Math.floor((currentStage - 1) / 5) * 2;
-            mazeSize = Math.min(baseSize + stageBonus, 41);
-            if (mazeSize % 2 === 0) mazeSize++;
+            // Set field dimensions
+            fieldWidth = currentField.width;
+            fieldHeight = currentField.height;
 
-            // Initialize maze grid
-            maze = [];
-            for (let y = 0; y < mazeSize; y++) {
-                maze[y] = [];
-                for (let x = 0; x < mazeSize; x++) {
-                    maze[y][x] = 1; // 1 = wall
-                }
-            }
+            // Set obstacles
+            obstacles = [...currentField.obstacles];
 
-            // Generate maze using recursive backtracking
-            const stack = [];
-            const startX = 1, startY = 1;
-            maze[startY][startX] = 0;
-            stack.push({ x: startX, y: startY });
+            // Set exit zone
+            exitZone = {...currentField.exitZone};
 
-            while (stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = [];
-
-                // Check all 4 directions
-                const dirs = [
-                    { dx: 0, dy: -2 },
-                    { dx: 2, dy: 0 },
-                    { dx: 0, dy: 2 },
-                    { dx: -2, dy: 0 }
-                ];
-
-                for (const dir of dirs) {
-                    const nx = current.x + dir.dx;
-                    const ny = current.y + dir.dy;
-                    if (nx > 0 && nx < mazeSize - 1 && ny > 0 && ny < mazeSize - 1 && maze[ny][nx] === 1) {
-                        neighbors.push({ x: nx, y: ny, wx: current.x + dir.dx / 2, wy: current.y + dir.dy / 2 });
-                    }
-                }
-
-                if (neighbors.length > 0) {
-                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    maze[next.wy][next.wx] = 0;
-                    maze[next.y][next.x] = 0;
-                    stack.push({ x: next.x, y: next.y });
-                } else {
-                    stack.pop();
-                }
-            }
-
-            // Add extra paths
-            const extraPaths = Math.floor(mazeSize * mazeSize * 0.15);
-            for (let i = 0; i < extraPaths; i++) {
-                const x = Math.floor(Math.random() * (mazeSize - 2)) + 1;
-                const y = Math.floor(Math.random() * (mazeSize - 2)) + 1;
-                if (maze[y][x] === 1) {
-                    const openNeighbors = [
-                        { x: x - 1, y }, { x: x + 1, y },
-                        { x, y: y - 1 }, { x, y: y + 1 }
-                    ].filter(n => n.x > 0 && n.x < mazeSize - 1 && n.y > 0 && n.y < mazeSize - 1 && maze[n.y][n.x] === 0);
-
-                    if (openNeighbors.length >= 2) {
-                        maze[y][x] = 0;
-                    }
-                }
-            }
-
-            // Set player and exit
-            player = { x: 1, y: 1 };
-            exit = { x: mazeSize - 2, y: mazeSize - 2 };
-            maze[exit.y][exit.x] = 0;
+            // Set player position
+            player = {
+                x: currentField.spawnPos.x,
+                y: currentField.spawnPos.y,
+                vx: 0,
+                vy: 0,
+                speed: PLAYER_SPEED
+            };
 
             // Place items
-            placeItems();
+            placeItemsInField();
 
             // Place enemies
-            placeEnemies();
+            placeEnemiesInField();
 
-            // Calculate cell size
-            const maxCanvasSize = Math.min(window.innerWidth - 40, 460);
-            cellSize = Math.max(Math.floor(maxCanvasSize / mazeSize), 12);
+            // Setup canvas with fixed viewport size
+            canvas.width = VIEWPORT_WIDTH;
+            canvas.height = VIEWPORT_HEIGHT;
 
-            // Setup canvas
-            canvas.width = mazeSize * cellSize;
-            canvas.height = mazeSize * cellSize;
+            // Initialize camera
+            camera.x = player.x - VIEWPORT_WIDTH / 2;
+            camera.y = player.y - VIEWPORT_HEIGHT / 2;
 
-            // Start enemy movement
+            // Clamp camera to map bounds
+            const maxX = Math.max(0, fieldWidth - VIEWPORT_WIDTH);
+            const maxY = Math.max(0, fieldHeight - VIEWPORT_HEIGHT);
+            camera.x = Math.max(0, Math.min(camera.x, maxX));
+            camera.y = Math.max(0, Math.min(camera.y, maxY));
+
+            // Start enemy movement (old system, will be replaced in step 4)
+            if (enemyMoveInterval) clearInterval(enemyMoveInterval);
             startEnemyMovement();
 
+            // Start game loop
+            startGameLoop();
+
             // Draw
-            drawMaze();
+            drawField();
         }
 
-        function placeItems() {
+        function placeItemsInField() {
             items = [];
-            const availableCells = [];
-
-            for (let y = 1; y < mazeSize - 1; y++) {
-                for (let x = 1; x < mazeSize - 1; x++) {
-                    if (maze[y][x] === 0 && !(x === 1 && y === 1) && !(x === exit.x && y === exit.y)) {
-                        availableCells.push({ x, y });
-                    }
-                }
-            }
-
-            // Shuffle
-            for (let i = availableCells.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availableCells[i], availableCells[j]] = [availableCells[j], availableCells[i]];
-            }
 
             // Place pokeballs (3-10 based on stage)
             const numPokeballs = Math.min(3 + Math.floor(currentStage / 3), 10);
-            for (let i = 0; i < numPokeballs && i < availableCells.length; i++) {
-                items.push({ ...availableCells[i], type: 'pokeball' });
+            for (let i = 0; i < numPokeballs; i++) {
+                let x, y, attempts = 0;
+                do {
+                    x = Math.random() * (fieldWidth - 100) + 50;
+                    y = Math.random() * (fieldHeight - 100) + 50;
+                    attempts++;
+                } while (isPositionBlocked(x, y, 20) && attempts < 50);
+
+                if (attempts < 50) {
+                    items.push({ x, y, type: 'pokeball' });
+                }
             }
 
             // Place hearts (1-5)
             const numHearts = Math.min(1 + Math.floor(currentStage / 5), 5);
-            for (let i = numPokeballs; i < numPokeballs + numHearts && i < availableCells.length; i++) {
-                items.push({ ...availableCells[i], type: 'heart' });
+            for (let i = 0; i < numHearts; i++) {
+                let x, y, attempts = 0;
+                do {
+                    x = Math.random() * (fieldWidth - 100) + 50;
+                    y = Math.random() * (fieldHeight - 100) + 50;
+                    attempts++;
+                } while (isPositionBlocked(x, y, 20) && attempts < 50);
+
+                if (attempts < 50) {
+                    items.push({ x, y, type: 'heart' });
+                }
             }
         }
 
-        function placeEnemies() {
+        // Legacy maze-based placeItems (kept for reference, not used)
+        function placeItems() {
+            placeItemsInField();
+        }
+
+        function placeEnemiesInField() {
             enemies = [];
             const numEnemies = Math.min(1 + Math.floor(currentStage / 4), 4);
 
             for (let i = 0; i < numEnemies; i++) {
-                let ex, ey;
+                let ex, ey, attempts = 0;
                 do {
-                    ex = Math.floor(Math.random() * (mazeSize - 4)) + 2;
-                    ey = Math.floor(Math.random() * (mazeSize - 4)) + 2;
+                    ex = Math.random() * (fieldWidth - 100) + 50;
+                    ey = Math.random() * (fieldHeight - 100) + 50;
+                    attempts++;
                 } while (
-                    maze[ey][ex] === 1 ||
-                    (Math.abs(ex - player.x) < 5 && Math.abs(ey - player.y) < 5)
+                    (isPositionBlocked(ex, ey, 30) ||
+                    Math.abs(ex - player.x) < 150 ||
+                    Math.abs(ey - player.y) < 150) &&
+                    attempts < 50
                 );
 
-                enemies.push({
-                    x: ex,
-                    y: ey,
-                    icon: ENEMY_ICONS[i % ENEMY_ICONS.length],
-                    color: ENEMY_COLORS[i % ENEMY_COLORS.length],
-                    direction: Math.floor(Math.random() * 4)
-                });
+                if (attempts < 50) {
+                    enemies.push({
+                        x: ex,
+                        y: ey,
+                        vx: 0,
+                        vy: 0,
+                        speed: ENEMY_SPEED_BASE * Math.pow(ENEMY_SPEED_MULT, Math.floor(currentStage / 5)),
+                        icon: ENEMY_ICONS[i % ENEMY_ICONS.length],
+                        color: ENEMY_COLORS[i % ENEMY_COLORS.length],
+                        direction: Math.floor(Math.random() * 4)
+                    });
+                }
             }
+        }
+
+        // Legacy maze-based placeEnemies (kept for reference, not used)
+        function placeEnemies() {
+            placeEnemiesInField();
+        }
+
+        // Helper function to check if a position collides with obstacles
+        function isPositionBlocked(x, y, radius) {
+            // Check obstacles
+            for (const obs of obstacles) {
+                const dx = Math.max(obs.x, Math.min(x, obs.x + obs.width)) - x;
+                const dy = Math.max(obs.y, Math.min(y, obs.y + obs.height)) - y;
+                if (dx * dx + dy * dy < radius * radius) {
+                    return true;
+                }
+            }
+
+            // Check too close to spawn
+            const spawnDist = Math.sqrt(
+                Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
+            );
+            if (spawnDist < 80) {
+                return true;
+            }
+
+            // Check too close to exit
+            const exitCenterX = exitZone.x + exitZone.width / 2;
+            const exitCenterY = exitZone.y + exitZone.height / 2;
+            const exitDist = Math.sqrt(
+                Math.pow(x - exitCenterX, 2) + Math.pow(y - exitCenterY, 2)
+            );
+            if (exitDist < 80) {
+                return true;
+            }
+
+            return false;
         }
 
         function startEnemyMovement() {
@@ -1394,61 +1558,334 @@
         }
 
         // ===== Drawing =====
-        function drawMaze() {
+        function drawField() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw cells
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
-                    const px = x * cellSize;
-                    const py = y * cellSize;
+            // Save context and apply camera transform
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
 
-                    if (maze[y][x] === 1) {
-                        // Wall - earthy brown
-                        ctx.fillStyle = '#5c3d2e';
-                        ctx.fillRect(px, py, cellSize, cellSize);
+            // Draw grass background
+            ctx.fillStyle = '#7cb342'; // Grass green
+            ctx.fillRect(camera.x, camera.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
-                        // Wall highlight
-                        ctx.fillStyle = '#8b5a2b';
-                        ctx.fillRect(px + 1, py + 1, cellSize - 2, 2);
-                        ctx.fillRect(px + 1, py + 1, 2, cellSize - 2);
-                    } else {
-                        // Floor - lighter tan
-                        ctx.fillStyle = '#dbc4a0';
-                        ctx.fillRect(px, py, cellSize, cellSize);
-
-                        // Floor pattern
-                        ctx.fillStyle = '#c4a574';
-                        ctx.fillRect(px + cellSize - 1, py, 1, cellSize);
-                        ctx.fillRect(px, py + cellSize - 1, cellSize, 1);
+            // Add grass texture pattern
+            ctx.fillStyle = '#6ba33b';
+            for (let y = Math.floor(camera.y / 20) * 20; y < camera.y + VIEWPORT_HEIGHT; y += 20) {
+                for (let x = Math.floor(camera.x / 20) * 20; x < camera.x + VIEWPORT_WIDTH; x += 20) {
+                    if ((x + y) % 40 === 0) {
+                        ctx.fillRect(x, y, 10, 10);
                     }
                 }
             }
 
-            // Draw exit
-            ctx.fillStyle = '#7cb342';
-            ctx.fillRect(exit.x * cellSize, exit.y * cellSize, cellSize, cellSize);
-            ctx.font = `${cellSize * 0.7}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🚪', exit.x * cellSize + cellSize / 2, exit.y * cellSize + cellSize / 2);
+            // Draw obstacles
+            for (const obs of obstacles) {
+                if (isInView(obs.x, obs.y, obs.width, obs.height)) {
+                    ctx.font = `${obs.width}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(obs.icon, obs.x + obs.width / 2, obs.y + obs.height / 2);
+                }
+            }
+
+            // Draw exit zone
+            if (isInView(exitZone.x, exitZone.y, exitZone.width, exitZone.height)) {
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.3)'; // Red transparent
+                ctx.fillRect(exitZone.x, exitZone.y, exitZone.width, exitZone.height);
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🚪', exitZone.x + exitZone.width / 2, exitZone.y + exitZone.height / 2);
+            }
 
             // Draw items
             for (const item of items) {
-                const icon = item.type === 'pokeball' ? '🔴' : '💊';
-                ctx.font = `${cellSize * 0.6}px Arial`;
-                ctx.fillText(icon, item.x * cellSize + cellSize / 2, item.y * cellSize + cellSize / 2);
+                if (isInView(item.x - 15, item.y - 15, 30, 30)) {
+                    const icon = item.type === 'pokeball' ? '🔴' : '💊';
+                    ctx.font = '20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(icon, item.x, item.y);
+                }
             }
 
             // Draw enemies
             for (const enemy of enemies) {
-                ctx.font = `${cellSize * 0.7}px Arial`;
-                ctx.fillText(enemy.icon, enemy.x * cellSize + cellSize / 2, enemy.y * cellSize + cellSize / 2);
+                if (isInView(enemy.x - 20, enemy.y - 20, 40, 40)) {
+                    ctx.font = '28px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(enemy.icon, enemy.x, enemy.y);
+                }
             }
 
             // Draw player
-            ctx.font = `${cellSize * 0.7}px Arial`;
-            ctx.fillText('🧑', player.x * cellSize + cellSize / 2, player.y * cellSize + cellSize / 2);
+            ctx.font = '28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧑', player.x, player.y);
+
+            // Restore context (remove camera transform)
+            ctx.restore();
+        }
+
+        // Legacy drawMaze (kept for reference, not used)
+        function drawMaze() {
+            drawField();
+        }
+
+        function isInView(x, y, width, height) {
+            return x + width >= camera.x &&
+                   x <= camera.x + VIEWPORT_WIDTH &&
+                   y + height >= camera.y &&
+                   y <= camera.y + VIEWPORT_HEIGHT;
+        }
+
+        // ===== Game Loop =====
+        function gameLoop(currentTime) {
+            if (!gameRunning) return;
+
+            const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+            lastTime = currentTime;
+
+            // Cap deltaTime to prevent large jumps
+            const cappedDelta = Math.min(deltaTime, 0.1);
+
+            updatePlayer(cappedDelta);
+            updateEnemies(cappedDelta);
+            updateCamera(cappedDelta);
+            checkCollisions();
+            drawField();
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGameLoop() {
+            if (!gameRunning) {
+                gameRunning = true;
+                lastTime = performance.now();
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function stopGameLoop() {
+            gameRunning = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+
+        function updatePlayer(deltaTime) {
+            // Set velocity based on keyboard input
+            player.vx = 0;
+            player.vy = 0;
+
+            if (keys.up) player.vy -= player.speed;
+            if (keys.down) player.vy += player.speed;
+            if (keys.left) player.vx -= player.speed;
+            if (keys.right) player.vx += player.speed;
+
+            // Normalize diagonal movement
+            if (player.vx !== 0 && player.vy !== 0) {
+                const norm = Math.sqrt(2);
+                player.vx /= norm;
+                player.vy /= norm;
+            }
+
+            // Calculate new position
+            let newX = player.x + player.vx * deltaTime;
+            let newY = player.y + player.vy * deltaTime;
+
+            // AABB collision check with obstacles
+            const playerHalfSize = PLAYER_HITBOX / 2;
+            const playerBox = {
+                x: newX - playerHalfSize,
+                y: player.y - playerHalfSize,
+                width: PLAYER_HITBOX,
+                height: PLAYER_HITBOX
+            };
+
+            // Check horizontal movement
+            let xCollision = false;
+            for (const obs of obstacles) {
+                if (AABBIntersect(playerBox, obs)) {
+                    xCollision = true;
+                    break;
+                }
+            }
+
+            if (!xCollision) {
+                player.x = newX;
+            }
+
+            // Update playerBox for vertical check
+            playerBox.x = player.x - playerHalfSize;
+            playerBox.y = newY - playerHalfSize;
+
+            // Check vertical movement
+            let yCollision = false;
+            for (const obs of obstacles) {
+                if (AABBIntersect(playerBox, obs)) {
+                    yCollision = true;
+                    break;
+                }
+            }
+
+            if (!yCollision) {
+                player.y = newY;
+            }
+
+            // Keep player in field bounds
+            player.x = Math.max(PLAYER_HITBOX / 2, Math.min(player.x, fieldWidth - PLAYER_HITBOX / 2));
+            player.y = Math.max(PLAYER_HITBOX / 2, Math.min(player.y, fieldHeight - PLAYER_HITBOX / 2));
+        }
+
+        // AABB collision detection helper
+        function AABBIntersect(box1, box2) {
+            return box1.x < box2.x + box2.width &&
+                   box1.x + box1.width > box2.x &&
+                   box1.y < box2.y + box2.height &&
+                   box1.y + box1.height > box2.y;
+        }
+
+        function updateEnemies(deltaTime) {
+            for (const enemy of enemies) {
+                // Calculate direction to player
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > 0) {
+                    // 70% chance to chase player, 30% random movement
+                    if (Math.random() < 0.7) {
+                        // Normalize direction and apply speed
+                        enemy.vx = (dx / dist) * enemy.speed;
+                        enemy.vy = (dy / dist) * enemy.speed;
+                    } else {
+                        // Random movement
+                        const angle = Math.random() * Math.PI * 2;
+                        enemy.vx = Math.cos(angle) * enemy.speed * 0.5;
+                        enemy.vy = Math.sin(angle) * enemy.speed * 0.5;
+                    }
+                }
+
+                // Update position
+                let newX = enemy.x + enemy.vx * deltaTime;
+                let newY = enemy.y + enemy.vy * deltaTime;
+
+                // Simple obstacle avoidance
+                const enemyHalfSize = 15;
+                let blocked = false;
+
+                for (const obs of obstacles) {
+                    const enemyBox = {
+                        x: newX - enemyHalfSize,
+                        y: newY - enemyHalfSize,
+                        width: enemyHalfSize * 2,
+                        height: enemyHalfSize * 2
+                    };
+                    if (AABBIntersect(enemyBox, obs)) {
+                        blocked = true;
+                        break;
+                    }
+                }
+
+                if (!blocked) {
+                    enemy.x = newX;
+                    enemy.y = newY;
+                }
+
+                // Keep enemy in bounds
+                enemy.x = Math.max(20, Math.min(enemy.x, fieldWidth - 20));
+                enemy.y = Math.max(20, Math.min(enemy.y, fieldHeight - 20));
+
+                // Separation: Keep enemies from overlapping
+                for (const other of enemies) {
+                    if (other === enemy) continue;
+
+                    const odx = other.x - enemy.x;
+                    const ody = other.y - enemy.y;
+                    const odist = Math.sqrt(odx * odx + ody * ody);
+
+                    if (odist < 32 && odist > 0) {
+                        // Push away
+                        const pushX = -(odx / odist) * 10 * deltaTime;
+                        const pushY = -(ody / odist) * 10 * deltaTime;
+                        enemy.x += pushX;
+                        enemy.y += pushY;
+                    }
+                }
+            }
+        }
+
+        function updateCamera(deltaTime) {
+            // Target camera position (centered on player)
+            const targetX = player.x - VIEWPORT_WIDTH / 2;
+            const targetY = player.y - VIEWPORT_HEIGHT / 2;
+
+            // Smooth camera movement (lerp)
+            camera.x += (targetX - camera.x) * CAMERA_SMOOTHING;
+            camera.y += (targetY - camera.y) * CAMERA_SMOOTHING;
+
+            // Clamp camera to field bounds
+            const maxX = Math.max(0, fieldWidth - VIEWPORT_WIDTH);
+            const maxY = Math.max(0, fieldHeight - VIEWPORT_HEIGHT);
+
+            camera.x = Math.max(0, Math.min(camera.x, maxX));
+            camera.y = Math.max(0, Math.min(camera.y, maxY));
+        }
+
+        function checkCollisions() {
+            // Check item pickup (items now use pixel coordinates directly)
+            for (let i = items.length - 1; i >= 0; i--) {
+                const dist = Math.sqrt(
+                    Math.pow(player.x - items[i].x, 2) +
+                    Math.pow(player.y - items[i].y, 2)
+                );
+
+                if (dist < 25) { // ITEM_PICKUP_RADIUS
+                    if (items[i].type === 'pokeball') {
+                        pokeballs++;
+                    } else if (items[i].type === 'heart') {
+                        lives = Math.min(lives + 1, 3);
+                    }
+                    items.splice(i, 1);
+                    updateHUD();
+                }
+            }
+
+            // Check enemy collision (enemies now use pixel coordinates directly)
+            for (const enemy of enemies) {
+                const dist = Math.sqrt(
+                    Math.pow(player.x - enemy.x, 2) +
+                    Math.pow(player.y - enemy.y, 2)
+                );
+
+                if (dist < 30) { // Collision radius
+                    lives -= 1;
+                    updateHUD();
+                    if (lives <= 0) {
+                        stopGameLoop();
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            // Check exit zone
+            const playerBox = {
+                x: player.x - PLAYER_HITBOX / 2,
+                y: player.y - PLAYER_HITBOX / 2,
+                width: PLAYER_HITBOX,
+                height: PLAYER_HITBOX
+            };
+
+            if (AABBIntersect(playerBox, exitZone)) {
+                stopGameLoop();
+                encounterMonster();
+            }
         }
 
         // ===== Player Movement =====
@@ -1506,19 +1943,51 @@
 
         // ===== Controls =====
         function setupControls() {
-            // Keyboard
+            // Keyboard - keydown
             document.addEventListener('keydown', (e) => {
                 if (!document.getElementById('mazeScreen').classList.contains('active')) return;
 
                 switch (e.key) {
-                    case 'ArrowUp': case 'w': case 'W': movePlayer(0, -1); break;
-                    case 'ArrowDown': case 's': case 'S': movePlayer(0, 1); break;
-                    case 'ArrowLeft': case 'a': case 'A': movePlayer(-1, 0); break;
-                    case 'ArrowRight': case 'd': case 'D': movePlayer(1, 0); break;
+                    case 'ArrowUp': case 'w': case 'W':
+                        keys.up = true;
+                        e.preventDefault();
+                        break;
+                    case 'ArrowDown': case 's': case 'S':
+                        keys.down = true;
+                        e.preventDefault();
+                        break;
+                    case 'ArrowLeft': case 'a': case 'A':
+                        keys.left = true;
+                        e.preventDefault();
+                        break;
+                    case 'ArrowRight': case 'd': case 'D':
+                        keys.right = true;
+                        e.preventDefault();
+                        break;
                 }
             });
 
-            // Mobile D-pad
+            // Keyboard - keyup
+            document.addEventListener('keyup', (e) => {
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': case 'W':
+                        keys.up = false;
+                        break;
+                    case 'ArrowDown': case 's': case 'S':
+                        keys.down = false;
+                        break;
+                    case 'ArrowLeft': case 'a': case 'A':
+                        keys.left = false;
+                        break;
+                    case 'ArrowRight': case 'd': case 'D':
+                        keys.right = false;
+                        break;
+                }
+            });
+
+            // Mobile D-pad (TODO: Update in step 5 for hold-based input)
+            // Temporarily disabled
+            /*
             document.querySelectorAll('.control-btn[data-dir]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const dir = btn.dataset.dir;
@@ -1549,10 +2018,12 @@
                     movePlayer(0, dy > 0 ? 1 : -1);
                 }
             }, { passive: true });
+            */
         }
 
         // ===== Encounter =====
         function encounterMonster() {
+            stopGameLoop();
             if (enemyMoveInterval) clearInterval(enemyMoveInterval);
 
             const monster = currentMonster;
@@ -1658,7 +2129,7 @@
                 }
             }
 
-            generateMaze();
+            generateField();
             showScreen('mazeScreen');
             updateHUD();
             updateStageDisplay();
@@ -1666,6 +2137,7 @@
         }
 
         async function gameOver() {
+            stopGameLoop();
             if (enemyMoveInterval) clearInterval(enemyMoveInterval);
 
             document.getElementById('finalStage').textContent = currentStage;
