@@ -797,12 +797,15 @@
         async function loadUserProgress() {
             // 먼저 로컬 스토리지에서 로드
             const saved = localStorage.getItem('flappyProgress');
+            console.log('[LoadProgress] localStorage 진행도:', saved);
             if (saved) {
                 userProgress = JSON.parse(saved);
+                console.log('[LoadProgress] 로드된 진행도:', userProgress);
             }
             const savedUnlocked = localStorage.getItem('flappyUnlocked');
             if (savedUnlocked) {
                 unlockedItems = JSON.parse(savedUnlocked);
+                console.log('[LoadProgress] 해금된 아이템 개수:', unlockedItems.length);
             }
             const savedEquipped = localStorage.getItem('flappyEquipped');
             if (savedEquipped) {
@@ -810,18 +813,24 @@
             }
 
             if (!currentUser) {
+                console.log('[LoadProgress] 로그인하지 않음, 로컬 데이터만 사용');
                 return;
             }
 
+            console.log('[LoadProgress] 서버에서 진행도 로드 시도...');
+
             try {
                 // 진행도 로드
-                const { data: progressData } = await supabase
+                const { data: progressData, error } = await supabase
                     .from('user_flappy_progress')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .single();
 
+                console.log('[LoadProgress] 서버 진행도:', progressData);
+
                 if (progressData) {
+                    console.log('[LoadProgress] 서버 데이터 병합 전 로컬:', userProgress);
                     // 서버 데이터와 로컬 데이터 중 더 큰 값 사용 (병합)
                     userProgress = {
                         total_games: Math.max(progressData.total_games || 0, userProgress.total_games || 0),
@@ -829,12 +838,15 @@
                         total_pipes: Math.max(progressData.total_pipes || 0, userProgress.total_pipes || 0),
                         best_score: Math.max(progressData.best_score || 0, userProgress.best_score || 0)
                     };
+                    console.log('[LoadProgress] 병합 후 진행도:', userProgress);
                     equippedItems = {
-                        hat: progressData.equipped_hat,
-                        glasses: progressData.equipped_glasses,
-                        accessory: progressData.equipped_accessory,
-                        skin: progressData.equipped_skin
+                        hat: progressData.equipped_hat || equippedItems.hat,
+                        glasses: progressData.equipped_glasses || equippedItems.glasses,
+                        accessory: progressData.equipped_accessory || equippedItems.accessory,
+                        skin: progressData.equipped_skin || equippedItems.skin
                     };
+                } else {
+                    console.log('[LoadProgress] 서버에 진행도 없음 (새 유저 또는 에러)');
                 }
 
                 // 해금된 아이템 로드
@@ -843,14 +855,22 @@
                     .select('item_id')
                     .eq('user_id', currentUser.id);
 
+                console.log('[LoadProgress] 서버 해금 아이템:', itemsData);
+
                 if (itemsData) {
                     const serverUnlockedItems = itemsData.map(i => i.item_id);
+                    console.log('[LoadProgress] 병합 전 로컬 해금:', unlockedItems);
                     // 로컬과 서버의 해금 아이템 병합 (중복 제거)
                     unlockedItems = [...new Set([...unlockedItems, ...serverUnlockedItems])];
+                    console.log('[LoadProgress] 병합 후 해금:', unlockedItems);
                 }
 
-                // 병합된 데이터를 로컬에 저장
-                await saveUserProgress();
+                // 병합된 데이터가 있으면 로컬과 서버에 저장
+                // (로컬 데이터가 있었거나 서버 데이터가 있었으면)
+                if (saved || progressData || (itemsData && itemsData.length > 0)) {
+                    console.log('[LoadProgress] 병합된 데이터 저장');
+                    await saveUserProgress();
+                }
             } catch (e) {
                 console.log('유저 진행도 로드 실패:', e);
             }
@@ -858,14 +878,20 @@
 
         // 진행도 저장
         async function saveUserProgress() {
+            console.log('[SaveProgress] 저장할 진행도:', userProgress);
             // 로컬 저장
             localStorage.setItem('flappyProgress', JSON.stringify(userProgress));
             localStorage.setItem('flappyUnlocked', JSON.stringify(unlockedItems));
             localStorage.setItem('flappyEquipped', JSON.stringify(equippedItems));
+            console.log('[SaveProgress] localStorage에 저장 완료');
 
-            if (!currentUser) return;
+            if (!currentUser) {
+                console.log('[SaveProgress] 로그인하지 않음, 서버 저장 생략');
+                return;
+            }
 
             try {
+                console.log('[SaveProgress] 서버에 저장 시도...');
                 await supabase.from('user_flappy_progress').upsert({
                     user_id: currentUser.id,
                     total_games: userProgress.total_games,
@@ -878,6 +904,7 @@
                     equipped_skin: equippedItems.skin,
                     updated_at: new Date().toISOString()
                 });
+                console.log('[SaveProgress] 서버 저장 완료');
             } catch (e) {
                 console.log('진행도 저장 실패:', e);
             }
@@ -1383,6 +1410,9 @@
             // 통과한 파이프 수 계산
             const pipesCleared = gameState.score;
 
+            console.log('[GameOver] 게임 종료, 이번 점수:', gameState.score);
+            console.log('[GameOver] 업데이트 전 진행도:', JSON.parse(JSON.stringify(userProgress)));
+
             // 진행도 업데이트
             userProgress.total_games++;
             userProgress.total_score += gameState.score;
@@ -1390,6 +1420,8 @@
             if (gameState.score > userProgress.best_score) {
                 userProgress.best_score = gameState.score;
             }
+
+            console.log('[GameOver] 업데이트 후 진행도:', userProgress);
 
             // 해금 체크
             const newUnlocks = await checkUnlocks(gameState.score, pipesCleared);
