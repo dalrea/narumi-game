@@ -445,6 +445,12 @@
             </div>
             <div class="notice-content">
                 <div class="notice-item">
+                    <div class="notice-item-title">💌 편지 버튼 추가</div>
+                    <p>사이트 우측 상단에 '편지' 버튼을 추가했어요.</p>
+                    <p>원하는 게임! 고쳐줬으면 하는 것! 지금 게임에 더 넣어줬으면 하는 것!</p>
+                    <p>모두 적어주세요 ㅎㅎ</p>
+                </div>
+                <div class="notice-item">
                     <div class="notice-item-title">🎮 게임 속도 문제 수정</div>
                     <p>기존에 기기마다 속도가 다른 문제가 있었습니다.</p>
                     <p>그래서 게임의 난이도가 다들 약간씩 다르게 느껴졌을 수도 있을 것 같아요. 미안합니다 😢</p>
@@ -540,6 +546,12 @@
             <p class="game-desc">야생 몬스터를 탐험하고 포획하세요! 30종의 몬스터 도감을 완성해보세요!</p>
         </a>
 
+        <a href="monv2/game.html" class="game-card">
+            <div class="game-icon" style="background: linear-gradient(145deg, #7cb342, #558b2f);">🌾</div>
+            <h2 class="game-title">몬브 투 (MonV2)</h2>
+            <p class="game-desc">스타듀밸리 스타일의 몬스터 수집 게임! 50종의 몬스터를 모두 포획하세요!</p>
+        </a>
+
         <a href="ranking.html" class="game-card">
             <div class="game-icon coming-soon" style="background: linear-gradient(145deg, #f39c12, #e67e22);">🏆</div>
             <h2 class="game-title">Ranking</h2>
@@ -615,7 +627,7 @@
         updateAuthUI();
 
         // 공지 팝업 관련
-        const NOTICE_VERSION = '2025-01-25-v1'; // 공지 버전 (새 공지 시 변경)
+        const NOTICE_VERSION = '2025-01-25-v2'; // 공지 버전 (새 공지 시 변경)
 
         function closeNotice() {
             document.getElementById('noticePopup').classList.add('hidden');
