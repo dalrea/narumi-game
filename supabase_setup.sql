@@ -67,4 +67,6 @@ CREATE POLICY "Users can insert own collections" ON game_collections
 
 -- 로그인한 사용자만 자신의 컬렉션 수정 가능
 CREATE POLICY "Users can update own collections" ON game_collections
-    FOR UPDATE USING (auth.uid() = user_id);
+    FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);

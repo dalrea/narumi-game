@@ -157,7 +157,7 @@ async function getCurrentNickname() {
     return user.user_metadata?.nickname || user.user_metadata?.username || 'Player';
 }
 
-// 게임 컬렉션 저장 (upsert)
+// 게임 컬렉션 저장 (select 후 insert/update 분기)
 async function saveGameCollection(gameId, collectionData, currentStage) {
     const client = await initSupabase();
     const user = await getCurrentUser();
@@ -167,20 +167,41 @@ async function saveGameCollection(gameId, collectionData, currentStage) {
         return null;
     }
 
-    const { data, error } = await client
+    // 먼저 기존 데이터가 있는지 확인
+    const { data: existing } = await client
         .from('game_collections')
-        .upsert({
-            user_id: user.id,
-            game_id: gameId,
-            collection_data: collectionData,
-            current_stage: currentStage,
-            updated_at: new Date().toISOString()
-        }, {
-            onConflict: 'user_id,game_id'
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('game_id', gameId)
+        .single();
 
-    if (error) throw error;
-    return data;
+    let result;
+    if (existing) {
+        // UPDATE
+        result = await client
+            .from('game_collections')
+            .update({
+                collection_data: collectionData,
+                current_stage: currentStage,
+                updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('game_id', gameId);
+    } else {
+        // INSERT
+        result = await client
+            .from('game_collections')
+            .insert({
+                user_id: user.id,
+                game_id: gameId,
+                collection_data: collectionData,
+                current_stage: currentStage,
+                updated_at: new Date().toISOString()
+            });
+    }
+
+    if (result.error) throw result.error;
+    return result.data;
 }
 
 // 게임 컬렉션 불러오기
