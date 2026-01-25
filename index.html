@@ -571,6 +571,12 @@
             <h2 class="game-title">Cute Game</h2>
             <p class="game-desc">아기고래 쿠아 게임 하러가기</p>
         </a>
+
+        <div class="game-card" onclick="showNotice()" style="cursor: pointer;">
+            <div class="game-icon" style="background: linear-gradient(145deg, #ff6b9d, #c44569);">📢</div>
+            <h2 class="game-title">공지사항</h2>
+            <p class="game-desc">새로운 소식과 업데이트 내용을 확인하세요!</p>
+        </div>
     </div>
 
     <footer>
@@ -632,6 +638,10 @@
         function closeNotice() {
             document.getElementById('noticePopup').classList.add('hidden');
             localStorage.setItem('noticeRead', NOTICE_VERSION);
+        }
+
+        function showNotice() {
+            document.getElementById('noticePopup').classList.remove('hidden');
         }
 
         function checkNotice() {
