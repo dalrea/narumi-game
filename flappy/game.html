@@ -607,6 +607,11 @@
         const ctx = canvas.getContext('2d');
         const GAME_ID = 'flappy';
 
+        // Supabase 클라이언트 초기화
+        const SUPABASE_URL = 'https://gaddpehqcxvvylfehlxh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZGRwZWhxY3h2dnlsZmVobHhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4MDE0MTgsImV4cCI6MjA4MTM3NzQxOH0.3tJUdK17TVUgY96SsA_PmGtiHm5wSyy1xtGdjNwqUbI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // 게임 상태
         let gameState = {
             isRunning: false,
