@@ -210,11 +210,202 @@
                 max-height: 150px;
             }
         }
+        /* 도감 버튼 */
+        .collection-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .collection-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        /* 도감 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-overlay.hidden {
+            display: none;
+        }
+        .modal {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: white;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        /* 탭 */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tab.active {
+            background: #4ecdc4;
+        }
+        /* 아이템 그리드 */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .item-card {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .item-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .item-card.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .item-card.equipped {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.2);
+        }
+        .item-card .item-icon {
+            font-size: 28px;
+        }
+        .item-card .item-name {
+            font-size: 10px;
+            margin-top: 4px;
+            text-align: center;
+        }
+        .item-card .lock-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+        /* 레어도 색상 */
+        .item-card.rarity-common { border-color: #aaa; }
+        .item-card.rarity-uncommon { border-color: #2ecc71; }
+        .item-card.rarity-rare { border-color: #3498db; }
+        .item-card.rarity-epic { border-color: #9b59b6; }
+        .item-card.rarity-legendary { border-color: #f39c12; }
+        .item-card.equipped.rarity-common { background: rgba(170, 170, 170, 0.2); }
+        .item-card.equipped.rarity-uncommon { background: rgba(46, 204, 113, 0.2); }
+        .item-card.equipped.rarity-rare { background: rgba(52, 152, 219, 0.2); }
+        .item-card.equipped.rarity-epic { background: rgba(155, 89, 182, 0.2); }
+        .item-card.equipped.rarity-legendary { background: rgba(243, 156, 18, 0.2); }
+        /* 진행도 */
+        .progress-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .progress-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 12px;
+        }
+        .progress-stat {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .progress-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        /* 새 아이템 알림 */
+        .new-item-alert {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .new-item-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="gameWrapper">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <!-- 도감 버튼 -->
+        <button class="collection-btn" onclick="openCollection()">
+            <span>👕</span>
+            <span>도감</span>
+        </button>
 
         <!-- 유저 정보 바 -->
         <div class="user-info-bar" id="userInfoBar" style="display: none;">
@@ -247,6 +438,13 @@
             <p class="high-score" id="highScoreText"></p>
             <p class="saving-indicator" id="savingIndicator"></p>
 
+            <!-- 새 아이템 해금 알림 -->
+            <div class="new-item-alert hidden" id="newItemAlert">
+                <div class="new-item-icon" id="newItemIcon">🎉</div>
+                <div><strong>새 아이템 해금!</strong></div>
+                <div id="newItemName"></div>
+            </div>
+
             <!-- 랭킹 -->
             <div class="leaderboard" id="gameOverLeaderboard">
                 <h3>🏆 TOP 5</h3>
@@ -257,6 +455,50 @@
                 <button class="btn" onclick="startGame()">다시 시작</button>
                 <a href="../index.html" class="btn btn-secondary">홈으로</a>
             </div>
+        </div>
+    </div>
+
+    <!-- 도감 모달 -->
+    <div class="modal-overlay hidden" id="collectionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">👕 도감</div>
+                <button class="modal-close" onclick="closeCollection()">×</button>
+            </div>
+
+            <!-- 진행도 -->
+            <div class="progress-section">
+                <div class="progress-title">📊 내 기록</div>
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <div>최고 점수</div>
+                        <div class="progress-stat-value" id="statBestScore">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div>총 게임</div>
+                        <div class="progress-stat-value" id="statTotalGames">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div>총 점수</div>
+                        <div class="progress-stat-value" id="statTotalScore">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div>통과 파이프</div>
+                        <div class="progress-stat-value" id="statTotalPipes">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('hat')">🎩 모자</button>
+                <button class="tab" onclick="showTab('glasses')">🕶️ 안경</button>
+                <button class="tab" onclick="showTab('accessory')">🎀 악세</button>
+                <button class="tab" onclick="showTab('skin')">🐦 스킨</button>
+            </div>
+
+            <!-- 아이템 그리드 -->
+            <div class="items-grid" id="itemsGrid"></div>
         </div>
     </div>
 
@@ -276,6 +518,48 @@
 
         // 현재 유저
         let currentUser = null;
+
+        // 아이템 시스템
+        let allItems = [];        // 모든 아이템 (마스터 데이터)
+        let unlockedItems = [];   // 해금된 아이템 ID 목록
+        let equippedItems = {     // 장착된 아이템
+            hat: null,
+            glasses: null,
+            accessory: null,
+            skin: null
+        };
+        let userProgress = {      // 유저 진행도
+            total_games: 0,
+            total_score: 0,
+            total_pipes: 0,
+            best_score: 0
+        };
+        let currentTab = 'hat';
+
+        // 로컬 아이템 데이터 (DB 없이도 동작하도록)
+        const LOCAL_ITEMS = [
+            { id: 1, name: '기본', icon: '🐦', type: 'skin', unlock_type: 'default', unlock_value: 0, unlock_description: '기본 새', rarity: 'common' },
+            { id: 10, name: '왕관', icon: '👑', type: 'hat', unlock_type: 'score', unlock_value: 50, unlock_description: '한 판에 50점 달성', rarity: 'legendary' },
+            { id: 11, name: '산타모자', icon: '🎅', type: 'hat', unlock_type: 'cumulative_games', unlock_value: 100, unlock_description: '100게임 플레이', rarity: 'epic' },
+            { id: 12, name: '마법사모자', icon: '🧙', type: 'hat', unlock_type: 'score', unlock_value: 30, unlock_description: '한 판에 30점 달성', rarity: 'rare' },
+            { id: 13, name: '파티모자', icon: '🎉', type: 'hat', unlock_type: 'cumulative_games', unlock_value: 10, unlock_description: '10게임 플레이', rarity: 'common' },
+            { id: 14, name: '카우보이', icon: '🤠', type: 'hat', unlock_type: 'cumulative_pipes', unlock_value: 500, unlock_description: '총 500개 파이프 통과', rarity: 'uncommon' },
+            { id: 15, name: '졸업모', icon: '🎓', type: 'hat', unlock_type: 'score', unlock_value: 100, unlock_description: '한 판에 100점 달성', rarity: 'legendary' },
+            { id: 20, name: '선글라스', icon: '🕶️', type: 'glasses', unlock_type: 'score', unlock_value: 10, unlock_description: '한 판에 10점 달성', rarity: 'common' },
+            { id: 21, name: '하트안경', icon: '💕', type: 'glasses', unlock_type: 'cumulative_score', unlock_value: 500, unlock_description: '총 500점 달성', rarity: 'uncommon' },
+            { id: 22, name: '별안경', icon: '⭐', type: 'glasses', unlock_type: 'score', unlock_value: 20, unlock_description: '한 판에 20점 달성', rarity: 'uncommon' },
+            { id: 23, name: '무지개안경', icon: '🌈', type: 'glasses', unlock_type: 'cumulative_score', unlock_value: 2000, unlock_description: '총 2000점 달성', rarity: 'rare' },
+            { id: 24, name: '다이아안경', icon: '💎', type: 'glasses', unlock_type: 'score', unlock_value: 70, unlock_description: '한 판에 70점 달성', rarity: 'epic' },
+            { id: 30, name: '리본', icon: '🎀', type: 'accessory', unlock_type: 'cumulative_games', unlock_value: 1, unlock_description: '첫 게임 플레이', rarity: 'common' },
+            { id: 31, name: '날개', icon: '🪽', type: 'accessory', unlock_type: 'score', unlock_value: 25, unlock_description: '한 판에 25점 달성', rarity: 'uncommon' },
+            { id: 32, name: '하트', icon: '❤️', type: 'accessory', unlock_type: 'cumulative_score', unlock_value: 1000, unlock_description: '총 1000점 달성', rarity: 'rare' },
+            { id: 33, name: '별', icon: '✨', type: 'accessory', unlock_type: 'cumulative_pipes', unlock_value: 1000, unlock_description: '총 1000개 파이프 통과', rarity: 'rare' },
+            { id: 34, name: '천사날개', icon: '😇', type: 'accessory', unlock_type: 'score', unlock_value: 80, unlock_description: '한 판에 80점 달성', rarity: 'epic' },
+            { id: 40, name: '골드버드', icon: '🌟', type: 'skin', unlock_type: 'score', unlock_value: 40, unlock_description: '한 판에 40점 달성', rarity: 'rare' },
+            { id: 41, name: '피닉스', icon: '🔥', type: 'skin', unlock_type: 'cumulative_score', unlock_value: 3000, unlock_description: '총 3000점 달성', rarity: 'epic' },
+            { id: 42, name: '아이스버드', icon: '❄️', type: 'skin', unlock_type: 'cumulative_games', unlock_value: 50, unlock_description: '50게임 플레이', rarity: 'uncommon' },
+            { id: 43, name: '레인보우', icon: '🌈', type: 'skin', unlock_type: 'score', unlock_value: 150, unlock_description: '한 판에 150점 달성', rarity: 'legendary' }
+        ];
 
         // 새
         const bird = {
@@ -391,6 +675,262 @@
                 gameState.highScore > 0 ? `내 최고 점수: ${gameState.highScore}` : '';
         }
 
+        // ============================================
+        // 아이템 시스템 함수들
+        // ============================================
+
+        // 아이템 데이터 로드
+        async function loadItems() {
+            try {
+                // Supabase에서 아이템 로드 시도
+                const { data, error } = await supabase.from('flappy_items').select('*').order('sort_order');
+                if (!error && data && data.length > 0) {
+                    allItems = data;
+                } else {
+                    allItems = LOCAL_ITEMS;
+                }
+            } catch (e) {
+                console.log('아이템 로드 실패, 로컬 데이터 사용:', e);
+                allItems = LOCAL_ITEMS;
+            }
+        }
+
+        // 유저 진행도 로드
+        async function loadUserProgress() {
+            if (!currentUser) {
+                // 로컬 스토리지에서 로드
+                const saved = localStorage.getItem('flappyProgress');
+                if (saved) {
+                    userProgress = JSON.parse(saved);
+                }
+                const savedUnlocked = localStorage.getItem('flappyUnlocked');
+                if (savedUnlocked) {
+                    unlockedItems = JSON.parse(savedUnlocked);
+                }
+                const savedEquipped = localStorage.getItem('flappyEquipped');
+                if (savedEquipped) {
+                    equippedItems = JSON.parse(savedEquipped);
+                }
+                return;
+            }
+
+            try {
+                // 진행도 로드
+                const { data: progressData } = await supabase
+                    .from('user_flappy_progress')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (progressData) {
+                    userProgress = {
+                        total_games: progressData.total_games || 0,
+                        total_score: progressData.total_score || 0,
+                        total_pipes: progressData.total_pipes || 0,
+                        best_score: progressData.best_score || 0
+                    };
+                    equippedItems = {
+                        hat: progressData.equipped_hat,
+                        glasses: progressData.equipped_glasses,
+                        accessory: progressData.equipped_accessory,
+                        skin: progressData.equipped_skin
+                    };
+                }
+
+                // 해금된 아이템 로드
+                const { data: itemsData } = await supabase
+                    .from('user_flappy_items')
+                    .select('item_id')
+                    .eq('user_id', currentUser.id);
+
+                if (itemsData) {
+                    unlockedItems = itemsData.map(i => i.item_id);
+                }
+            } catch (e) {
+                console.log('유저 진행도 로드 실패:', e);
+            }
+        }
+
+        // 진행도 저장
+        async function saveUserProgress() {
+            // 로컬 저장
+            localStorage.setItem('flappyProgress', JSON.stringify(userProgress));
+            localStorage.setItem('flappyUnlocked', JSON.stringify(unlockedItems));
+            localStorage.setItem('flappyEquipped', JSON.stringify(equippedItems));
+
+            if (!currentUser) return;
+
+            try {
+                await supabase.from('user_flappy_progress').upsert({
+                    user_id: currentUser.id,
+                    total_games: userProgress.total_games,
+                    total_score: userProgress.total_score,
+                    total_pipes: userProgress.total_pipes,
+                    best_score: userProgress.best_score,
+                    equipped_hat: equippedItems.hat,
+                    equipped_glasses: equippedItems.glasses,
+                    equipped_accessory: equippedItems.accessory,
+                    equipped_skin: equippedItems.skin,
+                    updated_at: new Date().toISOString()
+                });
+            } catch (e) {
+                console.log('진행도 저장 실패:', e);
+            }
+        }
+
+        // 아이템 해금
+        async function unlockItem(itemId) {
+            if (unlockedItems.includes(itemId)) return false;
+
+            unlockedItems.push(itemId);
+            localStorage.setItem('flappyUnlocked', JSON.stringify(unlockedItems));
+
+            if (currentUser) {
+                try {
+                    await supabase.from('user_flappy_items').insert({
+                        user_id: currentUser.id,
+                        item_id: itemId
+                    });
+                } catch (e) {
+                    console.log('아이템 해금 저장 실패:', e);
+                }
+            }
+            return true;
+        }
+
+        // 해금 조건 체크
+        async function checkUnlocks(score, pipes) {
+            const newUnlocks = [];
+
+            for (const item of allItems) {
+                if (unlockedItems.includes(item.id)) continue;
+
+                let shouldUnlock = false;
+
+                switch (item.unlock_type) {
+                    case 'default':
+                        shouldUnlock = true;
+                        break;
+                    case 'score':
+                        shouldUnlock = score >= item.unlock_value;
+                        break;
+                    case 'cumulative_score':
+                        shouldUnlock = userProgress.total_score >= item.unlock_value;
+                        break;
+                    case 'cumulative_games':
+                        shouldUnlock = userProgress.total_games >= item.unlock_value;
+                        break;
+                    case 'cumulative_pipes':
+                        shouldUnlock = userProgress.total_pipes >= item.unlock_value;
+                        break;
+                }
+
+                if (shouldUnlock) {
+                    const unlocked = await unlockItem(item.id);
+                    if (unlocked) {
+                        newUnlocks.push(item);
+                    }
+                }
+            }
+
+            return newUnlocks;
+        }
+
+        // 아이템 장착
+        async function equipItem(item) {
+            if (!unlockedItems.includes(item.id)) return;
+
+            // 같은 아이템이면 해제
+            if (equippedItems[item.type] === item.id) {
+                equippedItems[item.type] = null;
+            } else {
+                equippedItems[item.type] = item.id;
+            }
+
+            await saveUserProgress();
+            renderItems();
+        }
+
+        // 도감 열기
+        function openCollection() {
+            document.getElementById('collectionModal').classList.remove('hidden');
+            updateProgressDisplay();
+            renderItems();
+        }
+
+        // 도감 닫기
+        function closeCollection() {
+            document.getElementById('collectionModal').classList.add('hidden');
+        }
+
+        // 탭 전환
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderItems();
+        }
+
+        // 진행도 표시 업데이트
+        function updateProgressDisplay() {
+            document.getElementById('statBestScore').textContent = userProgress.best_score;
+            document.getElementById('statTotalGames').textContent = userProgress.total_games;
+            document.getElementById('statTotalScore').textContent = userProgress.total_score;
+            document.getElementById('statTotalPipes').textContent = userProgress.total_pipes;
+        }
+
+        // 아이템 렌더링
+        function renderItems() {
+            const grid = document.getElementById('itemsGrid');
+            const filteredItems = allItems.filter(item => item.type === currentTab);
+
+            grid.innerHTML = filteredItems.map(item => {
+                const isUnlocked = unlockedItems.includes(item.id);
+                const isEquipped = equippedItems[item.type] === item.id;
+
+                return `
+                    <div class="item-card ${isUnlocked ? '' : 'locked'} ${isEquipped ? 'equipped' : ''} rarity-${item.rarity}"
+                         onclick="${isUnlocked ? `equipItemById(${item.id})` : ''}"
+                         title="${item.unlock_description}">
+                        ${!isUnlocked ? '<span class="lock-icon">🔒</span>' : ''}
+                        <span class="item-icon">${item.icon}</span>
+                        <span class="item-name">${item.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ID로 아이템 장착
+        function equipItemById(itemId) {
+            const item = allItems.find(i => i.id === itemId);
+            if (item) equipItem(item);
+        }
+
+        // 새 아이템 해금 알림 표시
+        function showNewItemAlert(items) {
+            if (items.length === 0) return;
+
+            const alert = document.getElementById('newItemAlert');
+            const icon = document.getElementById('newItemIcon');
+            const name = document.getElementById('newItemName');
+
+            icon.textContent = items.map(i => i.icon).join(' ');
+            name.textContent = items.map(i => i.name).join(', ');
+            alert.classList.remove('hidden');
+        }
+
+        // 새 아이템 알림 숨기기
+        function hideNewItemAlert() {
+            document.getElementById('newItemAlert').classList.add('hidden');
+        }
+
+        // 장착된 아이템 가져오기
+        function getEquippedItem(type) {
+            const itemId = equippedItems[type];
+            if (!itemId) return null;
+            return allItems.find(i => i.id === itemId);
+        }
+
         // 새 그리기
         function drawBird() {
             ctx.save();
@@ -399,26 +939,63 @@
             bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity * 0.05));
             ctx.rotate(bird.rotation);
 
-            ctx.fillStyle = '#f7dc6f';
+            // 스킨에 따른 색상
+            const skin = getEquippedItem('skin');
+            let bodyColor = '#f7dc6f';
+            let bodyColor2 = '#fdeaa8';
+            let wingColor = '#f0b90b';
+
+            if (skin) {
+                switch (skin.id) {
+                    case 40: // 골드버드
+                        bodyColor = '#ffd700';
+                        bodyColor2 = '#ffec8b';
+                        wingColor = '#daa520';
+                        break;
+                    case 41: // 피닉스
+                        bodyColor = '#ff6347';
+                        bodyColor2 = '#ff7f50';
+                        wingColor = '#ff4500';
+                        break;
+                    case 42: // 아이스버드
+                        bodyColor = '#87ceeb';
+                        bodyColor2 = '#b0e0e6';
+                        wingColor = '#4682b4';
+                        break;
+                    case 43: // 레인보우
+                        const time = Date.now() / 500;
+                        bodyColor = `hsl(${(time * 50) % 360}, 70%, 60%)`;
+                        bodyColor2 = `hsl(${(time * 50 + 30) % 360}, 70%, 70%)`;
+                        wingColor = `hsl(${(time * 50 + 60) % 360}, 70%, 50%)`;
+                        break;
+                }
+            }
+
+            // 몸통
+            ctx.fillStyle = bodyColor;
             ctx.beginPath();
             ctx.ellipse(0, 0, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#fdeaa8';
+            // 배
+            ctx.fillStyle = bodyColor2;
             ctx.beginPath();
             ctx.ellipse(5, 5, bird.width / 3, bird.height / 3, 0, 0, Math.PI * 2);
             ctx.fill();
 
+            // 눈 흰자
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(10, -5, 8, 0, Math.PI * 2);
             ctx.fill();
 
+            // 눈동자
             ctx.fillStyle = 'black';
             ctx.beginPath();
             ctx.arc(12, -5, 4, 0, Math.PI * 2);
             ctx.fill();
 
+            // 부리
             ctx.fillStyle = '#e74c3c';
             ctx.beginPath();
             ctx.moveTo(15, 0);
@@ -427,10 +1004,37 @@
             ctx.closePath();
             ctx.fill();
 
-            ctx.fillStyle = '#f0b90b';
+            // 날개
+            ctx.fillStyle = wingColor;
             ctx.beginPath();
             ctx.ellipse(-5, 5, 10, 6, Math.PI / 6, 0, Math.PI * 2);
             ctx.fill();
+
+            // 장착 아이템 렌더링
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 모자
+            const hat = getEquippedItem('hat');
+            if (hat) {
+                ctx.font = '20px Arial';
+                ctx.fillText(hat.icon, 0, -22);
+            }
+
+            // 안경
+            const glasses = getEquippedItem('glasses');
+            if (glasses) {
+                ctx.font = '14px Arial';
+                ctx.fillText(glasses.icon, 8, -5);
+            }
+
+            // 악세서리
+            const accessory = getEquippedItem('accessory');
+            if (accessory) {
+                ctx.font = '14px Arial';
+                ctx.fillText(accessory.icon, -15, -10);
+            }
 
             ctx.restore();
         }
@@ -622,6 +1226,29 @@
         async function gameOver() {
             gameState.isRunning = false;
 
+            // 통과한 파이프 수 계산
+            const pipesCleared = gameState.score;
+
+            // 진행도 업데이트
+            userProgress.total_games++;
+            userProgress.total_score += gameState.score;
+            userProgress.total_pipes += pipesCleared;
+            if (gameState.score > userProgress.best_score) {
+                userProgress.best_score = gameState.score;
+            }
+
+            // 해금 체크
+            const newUnlocks = await checkUnlocks(gameState.score, pipesCleared);
+
+            // 진행도 저장
+            await saveUserProgress();
+
+            // 새 아이템 알림
+            hideNewItemAlert();
+            if (newUnlocks.length > 0) {
+                showNewItemAlert(newUnlocks);
+            }
+
             // 최고 점수 갱신
             if (gameState.score > gameState.highScore) {
                 gameState.highScore = gameState.score;
@@ -661,10 +1288,23 @@
         // 초기화
         async function init() {
             await updateUserInfo();
+            await loadItems();
+            await loadUserProgress();
+
+            // 기본 아이템 해금 체크
+            await checkUnlocks(0, 0);
+
             await loadLeaderboard('startRankingList');
             drawBackground();
             drawBird();
         }
+
+        // 모달 바깥 클릭시 닫기
+        document.getElementById('collectionModal').addEventListener('click', (e) => {
+            if (e.target.id === 'collectionModal') {
+                closeCollection();
+            }
+        });
 
         init();
     </script>
