@@ -157,7 +157,7 @@ async function getCurrentNickname() {
     return user.user_metadata?.nickname || user.user_metadata?.username || 'Player';
 }
 
-// 게임 컬렉션 저장 (select 후 insert/update 분기)
+// 게임 컬렉션 저장 (UPDATE 우선, 실패 시 INSERT)
 async function saveGameCollection(gameId, collectionData, currentStage) {
     const client = await initSupabase();
     const user = await getCurrentUser();
@@ -167,41 +167,36 @@ async function saveGameCollection(gameId, collectionData, currentStage) {
         return null;
     }
 
-    // 먼저 기존 데이터가 있는지 확인
-    const { data: existing } = await client
+    const updateData = {
+        collection_data: collectionData,
+        current_stage: currentStage,
+        updated_at: new Date().toISOString()
+    };
+
+    // 먼저 UPDATE 시도
+    const updateResult = await client
         .from('game_collections')
-        .select('id')
+        .update(updateData)
         .eq('user_id', user.id)
         .eq('game_id', gameId)
-        .single();
+        .select();
 
-    let result;
-    if (existing) {
-        // UPDATE
-        result = await client
-            .from('game_collections')
-            .update({
-                collection_data: collectionData,
-                current_stage: currentStage,
-                updated_at: new Date().toISOString()
-            })
-            .eq('user_id', user.id)
-            .eq('game_id', gameId);
-    } else {
-        // INSERT
-        result = await client
-            .from('game_collections')
-            .insert({
-                user_id: user.id,
-                game_id: gameId,
-                collection_data: collectionData,
-                current_stage: currentStage,
-                updated_at: new Date().toISOString()
-            });
+    // UPDATE가 성공하고 데이터가 있으면 반환
+    if (!updateResult.error && updateResult.data && updateResult.data.length > 0) {
+        return updateResult.data;
     }
 
-    if (result.error) throw result.error;
-    return result.data;
+    // UPDATE할 데이터가 없으면 INSERT 시도
+    const insertResult = await client
+        .from('game_collections')
+        .insert({
+            user_id: user.id,
+            game_id: gameId,
+            ...updateData
+        });
+
+    if (insertResult.error) throw insertResult.error;
+    return insertResult.data;
 }
 
 // 게임 컬렉션 불러오기
