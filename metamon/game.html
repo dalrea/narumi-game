@@ -305,6 +305,11 @@
         let imagesLoaded = 0;
         let particles = []; // 반짝이 파티클
 
+        // Delta time 관련
+        let lastTime = 0;
+        const TARGET_FPS = 60;
+        const FRAME_TIME = 1000 / TARGET_FPS; // 16.67ms
+
         // 파티클 생성 (합체 효과)
         function createMergeParticles(x, y, size) {
             const colors = ['#FFD700', '#FFF', '#FF69B4', '#87CEEB', '#98FB98'];
@@ -326,12 +331,12 @@
         }
 
         // 파티클 업데이트
-        function updateParticles() {
+        function updateParticles(dt) {
             particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.1; // 약간의 중력
-                p.life -= p.decay;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vy += 0.1 * dt; // 약간의 중력
+                p.life -= p.decay * dt;
             });
             particles = particles.filter(p => p.life > 0);
         }
@@ -461,15 +466,15 @@
         }
 
         // 물리 업데이트
-        function updatePhysics() {
+        function updatePhysics(dt) {
             if (gameOver) return;
 
             // 중력 및 이동
             metamons.forEach(m => {
-                m.vy += GRAVITY;
-                m.vx *= FRICTION;
-                m.x += m.vx;
-                m.y += m.vy;
+                m.vy += GRAVITY * dt;
+                m.vx *= Math.pow(FRICTION, dt);
+                m.x += m.vx * dt;
+                m.y += m.vy * dt;
 
                 const radius = m.size / 2;
 
@@ -611,9 +616,17 @@
         }
 
         // 게임 루프
-        function gameLoop() {
-            updatePhysics();
-            updateParticles();
+        function gameLoop(currentTime) {
+            // Delta time 계산 (60fps 기준으로 정규화)
+            if (lastTime === 0) lastTime = currentTime;
+            const deltaTime = (currentTime - lastTime) / FRAME_TIME;
+            lastTime = currentTime;
+
+            // 너무 큰 delta time 방지 (탭 전환 등)
+            const dt = Math.min(deltaTime, 3);
+
+            updatePhysics(dt);
+            updateParticles(dt);
             render();
             renderParticles();
             requestAnimationFrame(gameLoop);
@@ -641,6 +654,8 @@
             gameOver = false;
             metamons = [];
             canDrop = true;
+            lastTime = 0;
+            particles = [];
 
             document.getElementById('score').textContent = '0';
             document.getElementById('gameOverOverlay').classList.add('hidden');
