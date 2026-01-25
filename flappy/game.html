@@ -318,12 +318,8 @@
             background: rgba(255, 255, 255, 0.2);
         }
         .item-card.locked {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .item-card.equipped {
-            border-color: #4ecdc4;
-            background: rgba(78, 205, 196, 0.2);
+            opacity: 0.5;
+            cursor: pointer;
         }
         .item-card .item-icon {
             font-size: 28px;
@@ -339,17 +335,27 @@
             right: 5px;
             font-size: 12px;
         }
-        /* 레어도 색상 */
-        .item-card.rarity-common { border-color: #aaa; }
-        .item-card.rarity-uncommon { border-color: #2ecc71; }
-        .item-card.rarity-rare { border-color: #3498db; }
-        .item-card.rarity-epic { border-color: #9b59b6; }
-        .item-card.rarity-legendary { border-color: #f39c12; }
-        .item-card.equipped.rarity-common { background: rgba(170, 170, 170, 0.2); }
-        .item-card.equipped.rarity-uncommon { background: rgba(46, 204, 113, 0.2); }
-        .item-card.equipped.rarity-rare { background: rgba(52, 152, 219, 0.2); }
-        .item-card.equipped.rarity-epic { background: rgba(155, 89, 182, 0.2); }
-        .item-card.equipped.rarity-legendary { background: rgba(243, 156, 18, 0.2); }
+        /* 장착된 아이템만 레어도별 테두리와 배경색 표시 */
+        .item-card.equipped.rarity-common {
+            border-color: #aaa;
+            background: rgba(170, 170, 170, 0.2);
+        }
+        .item-card.equipped.rarity-uncommon {
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.2);
+        }
+        .item-card.equipped.rarity-rare {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.2);
+        }
+        .item-card.equipped.rarity-epic {
+            border-color: #9b59b6;
+            background: rgba(155, 89, 182, 0.2);
+        }
+        .item-card.equipped.rarity-legendary {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.2);
+        }
         /* 진행도 */
         .progress-section {
             background: rgba(255, 255, 255, 0.1);
