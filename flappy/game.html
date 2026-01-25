@@ -1393,6 +1393,7 @@
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('savingIndicator').textContent = '';
+            hideNewItemAlert(); // 이전 게임의 아이템 알림 숨기기
 
             gameState = {
                 isRunning: true,
