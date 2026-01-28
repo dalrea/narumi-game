@@ -12,7 +12,7 @@ function createWindow() {
     height: 384,
     minWidth: 320,
     minHeight: 300,
-    icon: path.join(__dirname, 'favicon.png'),
+    icon: path.join(__dirname, 'main_logo', 'mainlogo.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,

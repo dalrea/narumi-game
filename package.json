@@ -20,6 +20,7 @@
   "build": {
     "appId": "com.simsim.games",
     "productName": "Simsim Games",
+    "icon": "main_logo/mainlogo.ico",
     "directories": {
       "output": "dist"
     },
@@ -41,7 +42,7 @@
       "!metamon/assets_legacy/**"
     ],
     "win": {
-      "icon": "main_logo/mainlogo.png",
+      "icon": "main_logo/mainlogo.ico",
       "target": [
         {
           "target": "nsis",
@@ -63,7 +64,9 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "main_logo/mainlogo.ico",
+      "uninstallerIcon": "main_logo/mainlogo.ico"
     },
     "publish": {
       "provider": "github",
