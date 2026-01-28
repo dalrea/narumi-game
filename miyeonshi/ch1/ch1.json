@@ -1,0 +1,156 @@
+{
+  "chapter": "ch1",
+  "start": "c1_n1",
+  "nodes": {
+    "c1_n1": { "type": "setbg", "bg": "hallway_evening", "transition": "fade", "duration": 300, "next": "c1_n2" },
+    "c1_n2": { "type": "say", "who": "player", "text": "(또 늦었다. 미나는 먼저 와 있을 텐데.)", "next": "c1_n3" },
+    "c1_n3": { "type": "say", "who": "player", "text": "(‘괜찮아ㅎㅎ’… 그 말이 제일 무섭다.)", "next": "c1_n4" },
+
+    "c1_n4": {
+      "type": "choice",
+      "prompt": "문 앞에서 잠시 멈췄다.",
+      "choices": [
+        { "label": "숨 한번 고르고 들어간다", "effects": [{ "op": "add", "var": "sense", "val": 1 }], "next": "c1_n5" },
+        { "label": "‘미안해’ 메시지를 보낼까 고민한다", "effects": [{ "op": "add", "var": "fatigue", "val": 1 }], "next": "c1_n6" }
+      ]
+    },
+
+    "c1_n6": { "type": "say", "who": "player", "text": "(지금 보내면 더 길어질까? …그냥 들어가자.)", "next": "c1_n5" },
+    "c1_n5": { "type": "setbg", "bg": "clubroom_evening", "transition": "cut", "next": "c1_n7" },
+
+    "c1_n7": { "type": "playBgm", "track": "bgm_calm_01", "fadeIn": 800, "next": "c1_n8" },
+    "c1_n8": { "type": "setchar", "slot": "L", "char": "mina", "pose": "neutral", "expr": "smile", "next": "c1_n9" },
+    "c1_n9": { "type": "say", "who": "mina", "text": "아, 왔어? 괜찮아ㅎㅎ", "next": "c1_n10" },
+
+    "c1_n10": {
+      "type": "choice",
+      "prompt": "뭐라고 답할까?",
+      "choices": [
+        { "label": "미안해. 많이 기다렸지?", "effects": [{ "op": "add", "var": "trust", "val": 1 }], "next": "c1_n11" },
+        { "label": "왜? 무슨 일 있었어?", "effects": [{ "op": "add", "var": "fatigue", "val": 1 }], "next": "c1_n12" },
+        { "label": "다음부턴 더 신경 쓸게.", "effects": [{ "op": "add", "var": "trust", "val": 1 }, { "op": "add", "var": "interest", "val": 1 }], "next": "c1_n11" }
+      ]
+    },
+
+    "c1_n11": {
+      "type": "say",
+      "who": "mina",
+      "if": [
+        { "when": "vars.interest>=4", "text": "…그 말은 조금 고마워.", "effects": [{ "op": "add", "var": "sense", "val": 1 }] },
+        { "when": "true", "text": "응. 괜찮아." }
+      ],
+      "next": "c1_n13"
+    },
+
+    "c1_n12": {
+      "type": "say",
+      "who": "mina",
+      "if": [
+        { "when": "vars.fatigue>=2", "text": "아니야. 진짜 괜찮다니까. (웃음이 고정된다.)", "effects": [{ "op": "addFlag", "val": "smile_fixed" }] },
+        { "when": "true", "text": "아니야. 진짜 괜찮다니까." }
+      ],
+      "next": "c1_n13"
+    },
+
+    "c1_n13": { "type": "say", "who": "leader", "text": "자, 회의 시작하자.", "next": "c1_n14" },
+    "c1_n14": { "type": "say", "who": "leader", "text": "이 일정, 미나가 다 맡아서 정리한 거지?", "next": "c1_n15" },
+
+    "c1_n15": {
+      "type": "say",
+      "who": "mina",
+      "if": [
+        { "when": "flags.has('smile_fixed')", "text": "아… 네. (숨이 길어졌다.)", "effects": [{ "op": "add", "var": "sense", "val": 1 }] },
+        { "when": "true", "text": "아… 네." }
+      ],
+      "next": "c1_n16"
+    },
+
+    "c1_n16": { "type": "say", "who": "leader", "text": "그럼 오늘도 그대로 가자. 질문 없지?", "next": "c1_n17" },
+
+    "c1_n17": {
+      "type": "choice",
+      "prompt": "이 장면을 어떻게 넘길까?",
+      "choices": [
+        { "label": "대신 한 문장만 보탠다(짧게)", "effects": [{ "op": "add", "var": "trust", "val": 1 }], "next": "c1_n18" },
+        { "label": "가만히 지켜본다", "effects": [{ "op": "add", "var": "sense", "val": 1 }], "next": "c1_n19" },
+        { "label": "회의 후에 챙긴다", "effects": [{ "op": "addFlag", "val": "after_meeting" }], "next": "c1_n20" }
+      ]
+    },
+
+    "c1_n18": { "type": "say", "who": "player", "text": "자료는 제가 공유할게요. 미나는 발표에만 집중해.", "next": "c1_n21" },
+    "c1_n19": { "type": "say", "who": "player", "text": "(미나가 고개를 한 번 끄덕이고, 바로 화면으로 시선을 숨겼다.)", "next": "c1_n21" },
+    "c1_n20": { "type": "say", "who": "player", "text": "(지금 끼어들면 더 커질 수도 있다. 끝나고 이야기하자.)", "next": "c1_n21" },
+
+    "c1_n21": {
+      "type": "say",
+      "who": "player",
+      "if": [
+        { "when": "flags.has('after_meeting')", "text": "(회의가 끝나면 미나만 남게 만들지 말자.)" },
+        { "when": "true", "text": "(회의가 생각보다 길어졌다.)" }
+      ],
+      "next": "c1_n22"
+    },
+
+    "c1_n22": { "type": "say", "who": "leader", "text": "오케이. 해산!", "next": "c1_n23" },
+
+    "c1_n23": {
+      "type": "nextIf",
+      "cases": [
+        { "when": "flags.has('after_meeting')", "next": "c1_n24" },
+        { "when": "true", "next": "c1_n26" }
+      ]
+    },
+
+    "c1_n24": { "type": "say", "who": "player", "text": "미나, 잠깐. 오늘 일정 파일… 내가 정리해서 보낼게.", "next": "c1_n25" },
+
+    "c1_n25": {
+      "type": "say",
+      "who": "mina",
+      "if": [
+        { "when": "vars.trust>=4", "text": "…응. 그럼 부탁할게. (표정이 아주 조금 풀린다.)", "effects": [{ "op": "add", "var": "sense", "val": 1 }] },
+        { "when": "true", "text": "…고마워." }
+      ],
+      "next": "c1_n28"
+    },
+
+    "c1_n26": {
+      "type": "choice",
+      "prompt": "회의 후, 어떻게 할까?",
+      "choices": [
+        { "label": "정리된 자료를 먼저 보낸다", "effects": [{ "op": "add", "var": "trust", "val": 1 }, { "op": "add", "var": "sense", "val": 1 }], "next": "c1_n27" },
+        { "label": "괜찮은지 다시 묻는다(한 번만)", "effects": [{ "op": "addFlag", "val": "asked_twice" }], "next": "c1_n30" }
+      ]
+    },
+
+    "c1_n27": { "type": "say", "who": "mina", "text": "아… 이거. 고마워.", "next": "c1_n28" },
+
+    "c1_n28": { "type": "stopBgm", "fadeOut": 500, "next": "c1_n29" },
+
+    "c1_n29": {
+      "type": "nextIf",
+      "cases": [
+        { "when": "vars.sense>=5", "next": "c1_n31" },
+        { "when": "true", "next": "c1_n32" }
+      ]
+    },
+
+    "c1_n30": {
+      "type": "say",
+      "who": "mina",
+      "if": [
+        { "when": "flags.has('asked_twice')", "text": "괜찮아ㅎㅎ (…더 얘기하고 싶지 않은 웃음이다.)" },
+        { "when": "true", "text": "괜찮아ㅎㅎ" }
+      ],
+      "next": "c1_n28"
+    },
+
+    "c1_n31": { "type": "say", "who": "mina", "text": "너 요즘… (멈춤) 좀 달라.", "next": "c1_n33" },
+    "c1_n32": { "type": "say", "who": "mina", "text": "먼저 갈게.", "next": "c1_n33" },
+
+    "c1_n33": { "type": "setbg", "bg": "hallway_evening", "transition": "fade", "duration": 250, "next": "c1_n34" },
+    "c1_n34": { "type": "playSfx", "sfx": "door_open", "next": "c1_n35" },
+
+    "c1_n35": { "type": "say", "who": "player", "text": "(‘괜찮아ㅎㅎ’는 끝이 아니라, 다음을 미루는 말일지도 모른다.)", "next": "c1_n36" },
+    "c1_n36": { "type": "end", "nextChapter": "ch2" }
+  }
+}

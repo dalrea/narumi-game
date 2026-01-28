@@ -1,0 +1,14 @@
+{
+  "id": "ch1",
+  "entries": [
+    { "unlock": { "when": "visited.c1_n9" }, "title": "‘괜찮아ㅎㅎ’의 기능", "text": "‘괜찮아ㅎㅎ’는 ‘괜찮다’보다 ‘지금은 여기서 끊자’에 가까울 때가 있다." },
+    { "unlock": { "when": "vars.fatigue>=1" }, "title": "문 앞에서 생긴 피로", "text": "사과 메시지를 고민하는 순간, 이미 대화는 한 번 시작된 상태다." },
+    { "unlock": { "when": "flags.has('smile_fixed')" }, "title": "고정된 웃음", "text": "웃음이 ‘편함’이 아니라 ‘방어’가 되는 순간이 있다." },
+    { "unlock": { "when": "visited.c1_n16" }, "title": "회장의 ‘당연함’", "text": "‘다 맡아서 정리했지?’는 칭찬이 아니라 ‘네가 책임져’로 들릴 수 있다." },
+    { "unlock": { "when": "flags.has('after_meeting')" }, "title": "미룬 개입", "text": "지금 끼어들면 커질 것 같을 때, ‘나중에 챙기기’는 회피가 아니라 전략일 수 있다." },
+    { "unlock": { "when": "visited.c1_n24" }, "title": "챙김의 형태", "text": "‘괜찮아?’가 아니라 ‘내가 정리해서 보낼게’처럼 구체적인 행동은 부담을 줄인다." },
+    { "unlock": { "when": "flags.has('asked_twice')" }, "title": "두 번째 질문", "text": "같은 질문이 두 번 나오면, 대답은 정보가 아니라 ‘종료 신호’가 되기 쉽다." },
+    { "unlock": { "when": "visited.c1_n31" }, "title": "멈춘 말", "text": "‘너 요즘…’에서 멈춘 말은 ‘기대’일 수도, ‘조심’일 수도 있다." },
+    { "unlock": { "when": "true" }, "title": "Ch1 요약", "text": "첫 챕터의 목표는 ‘정답 맞히기’가 아니라 ‘안전감이 줄어드는 패턴을 멈추기’다." }
+  ]
+}
