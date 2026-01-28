@@ -1,0 +1,74 @@
+{
+  "name": "simsim-games",
+  "version": "1.0.0",
+  "description": "Simsim Games - Mini Game Collection",
+  "main": "main.js",
+  "author": "Simsim",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:publish": "electron-builder --win --publish always"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.0"
+  },
+  "build": {
+    "appId": "com.simsim.games",
+    "productName": "Simsim Games",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "auth.html",
+      "ranking.html",
+      "favicon.png",
+      "main_logo/**/*",
+      "js/**/*",
+      "flappy/**/*",
+      "tetris/**/*",
+      "narumi/**/*",
+      "monster/**/*",
+      "metamon/**/*",
+      "pokemon/**/*",
+      "!metamon/assets_legacy/**"
+    ],
+    "win": {
+      "icon": "main_logo/mainlogo.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "sign": false,
+      "signDlls": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "dalrea",
+      "repo": "simsim"
+    }
+  }
+}
