@@ -1354,28 +1354,36 @@
         }
 
         let pipeTimer = 0;
-        const PIPE_SPAWN_INTERVAL = 90; // 90프레임 = 1.5초 (60fps 기준)
+        const PIPE_SPAWN_INTERVAL = 90; // 90 physics steps = 1.5초
+        const PHYSICS_STEP = 1.0; // 고정 물리 스텝 (1 normalized frame)
+        let accumulator = 0;
 
         function gameLoop(currentTime) {
             if (!gameState.isRunning) return;
 
             // Delta time 계산 (60fps 기준으로 정규화)
             if (lastTime === 0) lastTime = currentTime;
-            const deltaTime = (currentTime - lastTime) / FRAME_TIME;
+            const rawDelta = (currentTime - lastTime) / FRAME_TIME;
             lastTime = currentTime;
 
-            // 너무 큰 delta time 방지 (탭 전환 등)
-            const dt = Math.min(deltaTime, 3);
+            // 너무 큰 delta time 방지 (탭 전환, 백그라운드 복귀 등)
+            accumulator += Math.min(rawDelta, 3);
 
-            update(dt);
-            render();
+            // 고정 타임스텝으로 물리 업데이트
+            // → 30fps든 144fps든 모든 사람이 동일한 게임 속도 경험
+            while (accumulator >= PHYSICS_STEP) {
+                update(PHYSICS_STEP);
 
-            pipeTimer += dt;
-            if (pipeTimer > PIPE_SPAWN_INTERVAL) {
-                spawnPipe();
-                pipeTimer = 0;
+                pipeTimer += PHYSICS_STEP;
+                if (pipeTimer >= PIPE_SPAWN_INTERVAL) {
+                    spawnPipe();
+                    pipeTimer = 0;
+                }
+
+                accumulator -= PHYSICS_STEP;
             }
 
+            render();
             requestAnimationFrame(gameLoop);
         }
 
@@ -1402,6 +1410,7 @@
             pipes = [];
             pipeTimer = 0;
             lastTime = 0;
+            accumulator = 0;
 
             requestAnimationFrame(gameLoop);
         }
