@@ -297,6 +297,7 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="../js/supabase.js"></script>
+    <script src="../js/auth-modal.js"></script>
     <script>
         // 레벨: 0 ~ 11 (총 12종)
         const MAX_LEVEL = 11;
@@ -654,10 +655,15 @@
             document.getElementById('gameOverOverlay').classList.remove('hidden');
 
             // 점수 저장
-            try {
-                await saveScore('metamon-merge', score);
-            } catch (e) {
-                console.log('점수 저장 실패:', e);
+            const currentUser = await getCurrentUser().catch(() => null);
+            if (currentUser) {
+                try {
+                    await saveScore('metamon-merge', score);
+                } catch (e) {
+                    console.log('점수 저장 실패:', e);
+                }
+            } else {
+                showAuthModalAndSaveScore('metamon-merge', score);
             }
         }
 

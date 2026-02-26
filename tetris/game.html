@@ -384,6 +384,7 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="../js/supabase.js"></script>
+    <script src="../js/auth-modal.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -795,8 +796,12 @@
             document.getElementById('gameOverScreen').style.display = 'flex';
             updateHighScoreDisplay();
 
-            if (currentUser && score > 0) {
-                await saveGameScore(score);
+            if (score > 0) {
+                if (currentUser) {
+                    await saveGameScore(score);
+                } else {
+                    showAuthModalAndSaveScore(GAME_ID, score).then(() => loadLeaderboard('gameOverRankingList'));
+                }
             }
             await loadLeaderboard('gameOverRankingList');
         }

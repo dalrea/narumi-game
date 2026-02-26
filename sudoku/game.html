@@ -486,6 +486,7 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="../js/supabase.js"></script>
+    <script src="../js/auth-modal.js"></script>
     <script src="puzzles.js"></script>
     <script>
     // ======================== 상태 변수 ========================
@@ -888,7 +889,15 @@
 
         // 랭킹 점수 = 총 클리어 스테이지 수 (새 스테이지 첫 클리어 시에만 저장)
         if (isNewStage) {
-            saveScore('sudoku', totalCleared).catch(e => console.log('점수 저장 실패:', e));
+            getCurrentUser().then(user => {
+                if (user) {
+                    saveScore('sudoku', totalCleared).catch(e => console.log('점수 저장 실패:', e));
+                } else {
+                    showAuthModalAndSaveScore('sudoku', totalCleared, '스테이지');
+                }
+            }).catch(() => {
+                showAuthModalAndSaveScore('sudoku', totalCleared, '스테이지');
+            });
         }
 
         const stageNum = (currentLevel - 1) * 10 + currentStageIndex + 1;

@@ -591,6 +591,7 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <script src="../js/supabase.js"></script>
+    <script src="../js/auth-modal.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -1305,8 +1306,12 @@
             document.getElementById('pauseBtn').style.display = 'none';
 
             // 점수 저장 및 랭킹 로드
-            if (currentUser && gameState.totalScore > 0) {
-                await saveGameScore(gameState.totalScore, 'savingIndicatorOver');
+            if (gameState.totalScore > 0) {
+                if (currentUser) {
+                    await saveGameScore(gameState.totalScore, 'savingIndicatorOver');
+                } else {
+                    showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('gameOverRankingList'));
+                }
             }
             await loadLeaderboard('gameOverRankingList');
         }
@@ -1321,8 +1326,12 @@
             document.getElementById('pauseBtn').style.display = 'none';
 
             // 점수 저장 및 랭킹 로드
-            if (currentUser && gameState.totalScore > 0) {
-                await saveGameScore(gameState.totalScore, 'savingIndicatorSuccess');
+            if (gameState.totalScore > 0) {
+                if (currentUser) {
+                    await saveGameScore(gameState.totalScore, 'savingIndicatorSuccess');
+                } else {
+                    showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('successRankingList'));
+                }
             }
             await loadLeaderboard('successRankingList');
         }
