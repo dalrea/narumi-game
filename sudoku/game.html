@@ -60,9 +60,7 @@
             width: 100%;
             max-width: 600px;
         }
-        .level-section {
-            margin-bottom: 24px;
-        }
+        .level-section { margin-bottom: 24px; }
         .level-header {
             display: flex;
             align-items: center;
@@ -75,10 +73,7 @@
             font-size: 14px;
             font-weight: bold;
         }
-        .level-name {
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-        }
+        .level-name { color: rgba(255,255,255,0.8); font-size: 14px; }
         .stage-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -153,7 +148,6 @@
             color: #4ecdc4;
         }
         .game-info-value.timer { color: #fff; }
-        .game-info-value.mistakes { color: #ff6b6b; }
 
         /* 스도쿠 보드 */
         .board-wrap {
@@ -189,7 +183,7 @@
 
         .cell.given { color: #fff; }
         .cell.user-input { color: #4ecdc4; }
-        .cell.wrong { color: #ff6b6b !important; background: rgba(255,107,107,0.12) !important; }
+        .cell.wrong { color: #ff6b6b !important; background: rgba(255,107,107,0.15) !important; }
         .cell.selected { background: rgba(78,205,196,0.25) !important; }
         .cell.highlighted { background: rgba(255,255,255,0.07); }
         .cell.same-number { background: rgba(78,205,196,0.12); }
@@ -241,6 +235,7 @@
             display: flex;
             gap: 8px;
             justify-content: center;
+            margin-bottom: 12px;
         }
         .ctrl-btn {
             flex: 1;
@@ -263,6 +258,37 @@
             background: rgba(78,205,196,0.25);
             border-color: #4ecdc4;
         }
+
+        /* 제출 버튼 */
+        .submit-wrap {
+            width: 100%;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: rgba(255,255,255,0.12);
+            border: 2px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            pointer-events: none;
+        }
+        .submit-btn.ready {
+            background: linear-gradient(135deg, #4ecdc4, #44b3ab);
+            border-color: #4ecdc4;
+            color: #fff;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(78,205,196,0.35);
+        }
+        .submit-btn.ready:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78,205,196,0.5);
+        }
+        .submit-btn.ready:active { transform: scale(0.98); }
 
         /* === 오버레이 === */
         .overlay {
@@ -322,6 +348,19 @@
         }
         .new-record { color: #ffd700; font-size: 13px; margin-bottom: 10px; }
 
+        /* 검증 실패 모달 */
+        .wrong-count-badge {
+            display: inline-block;
+            background: rgba(255,107,107,0.2);
+            border: 1px solid rgba(255,107,107,0.4);
+            border-radius: 8px;
+            padding: 8px 20px;
+            color: #ff6b6b;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 480px) {
             body { padding: 12px; }
             .title { font-size: 22px; }
@@ -360,8 +399,8 @@
                 <span class="game-info-value timer" id="timerDisplay">00:00</span>
             </div>
             <div class="game-info-item">
-                <span class="game-info-label">실수</span>
-                <span class="game-info-value mistakes" id="mistakesDisplay">0/3</span>
+                <span class="game-info-label">남은 칸</span>
+                <span class="game-info-value" id="emptyDisplay">0</span>
             </div>
         </div>
 
@@ -399,9 +438,15 @@
                 <span>목록</span>
             </button>
         </div>
+
+        <div class="submit-wrap">
+            <button class="submit-btn" id="submitBtn" onclick="submitAnswer()">
+                빈 칸을 모두 채워주세요
+            </button>
+        </div>
     </div>
 
-    <!-- 완료 모달 -->
+    <!-- 클리어 모달 -->
     <div class="overlay" id="clearModal">
         <div class="modal">
             <div class="modal-icon">🎉</div>
@@ -414,30 +459,27 @@
                     <div class="modal-stat-label">클리어 시간</div>
                 </div>
                 <div class="modal-stat">
-                    <div class="modal-stat-value" id="clearMistakes">0</div>
-                    <div class="modal-stat-label">실수 횟수</div>
-                </div>
-                <div class="modal-stat">
                     <div class="modal-stat-value" id="clearScore">0</div>
                     <div class="modal-stat-label">점수</div>
                 </div>
             </div>
             <div class="modal-btns">
                 <button class="modal-btn secondary" onclick="showStageSelect()">목록으로</button>
-                <button class="modal-btn primary" id="nextStageBtn" onclick="goNextStage()">다음 스테이지</button>
+                <button class="modal-btn primary" id="nextStageBtn" onclick="goNextStage()">다음 스테이지 →</button>
             </div>
         </div>
     </div>
 
-    <!-- 게임오버 모달 -->
-    <div class="overlay" id="gameoverModal">
+    <!-- 검증 실패 모달 -->
+    <div class="overlay" id="wrongModal">
         <div class="modal">
-            <div class="modal-icon">💔</div>
-            <div class="modal-title" style="color:#ff6b6b;">게임 오버</div>
-            <div class="modal-sub">실수 3번으로 게임이 끝났어요</div>
-            <div class="modal-btns" style="margin-top:20px;">
+            <div class="modal-icon">🤔</div>
+            <div class="modal-title" style="color:#ff6b6b;">아직 틀린 곳이 있어요</div>
+            <div class="modal-sub">빨간색으로 표시된 칸을 확인해보세요</div>
+            <div class="wrong-count-badge" id="wrongCountBadge">0칸 틀림</div>
+            <div class="modal-btns">
                 <button class="modal-btn secondary" onclick="showStageSelect()">목록으로</button>
-                <button class="modal-btn primary" onclick="restartStage()">다시 도전</button>
+                <button class="modal-btn primary" onclick="closeWrongModal()">다시 시도</button>
             </div>
         </div>
     </div>
@@ -449,91 +491,80 @@
     // ======================== 상태 변수 ========================
     let currentLevel = 1;
     let currentStageIndex = 0;
-    let board = [];          // 현재 보드 (0 = 빈칸)
-    let solution = [];       // 정답 보드
-    let given = [];          // 주어진 셀 여부
-    let notes = [];          // 메모 데이터 [row][col] = Set
+    let board = [];
+    let solution = [];
+    let given = [];
+    let notes = [];
     let selectedRow = -1;
     let selectedCol = -1;
     let timerSeconds = 0;
     let timerInterval = null;
-    let mistakes = 0;
     let isNoteMode = false;
-    let history = [];        // 되돌리기 스택
+    let history = [];
     let isGameActive = false;
 
-    const MAX_MISTAKES = 3;
-
-    // 레벨별 색상 & 이름
     const LEVEL_INFO = {
-        1:  { name: '입문',     color: '#4ecdc4', bg: 'rgba(78,205,196,0.2)' },
-        2:  { name: '초급',     color: '#45b7d1', bg: 'rgba(69,183,209,0.2)' },
-        3:  { name: '쉬움',     color: '#96e6a1', bg: 'rgba(150,230,161,0.2)' },
-        4:  { name: '보통',     color: '#d4e157', bg: 'rgba(212,225,87,0.2)' },
-        5:  { name: '중간',     color: '#ffa726', bg: 'rgba(255,167,38,0.2)' },
-        6:  { name: '어려움',   color: '#ff7043', bg: 'rgba(255,112,67,0.2)' },
-        7:  { name: '고급',     color: '#ef5350', bg: 'rgba(239,83,80,0.2)' },
+        1:  { name: '입문',       color: '#4ecdc4', bg: 'rgba(78,205,196,0.2)' },
+        2:  { name: '초급',       color: '#45b7d1', bg: 'rgba(69,183,209,0.2)' },
+        3:  { name: '쉬움',       color: '#96e6a1', bg: 'rgba(150,230,161,0.2)' },
+        4:  { name: '보통',       color: '#d4e157', bg: 'rgba(212,225,87,0.2)' },
+        5:  { name: '중간',       color: '#ffa726', bg: 'rgba(255,167,38,0.2)' },
+        6:  { name: '어려움',     color: '#ff7043', bg: 'rgba(255,112,67,0.2)' },
+        7:  { name: '고급',       color: '#ef5350', bg: 'rgba(239,83,80,0.2)' },
         8:  { name: '매우어려움', color: '#e91e63', bg: 'rgba(233,30,99,0.2)' },
-        9:  { name: '극강',     color: '#9c27b0', bg: 'rgba(156,39,176,0.2)' },
-        10: { name: '전설',     color: '#ffd700', bg: 'rgba(255,215,0,0.2)' },
+        9:  { name: '극강',       color: '#9c27b0', bg: 'rgba(156,39,176,0.2)' },
+        10: { name: '전설',       color: '#ffd700', bg: 'rgba(255,215,0,0.2)' },
     };
 
     // ======================== 로컬 저장소 ========================
-    function getProgressKey() { return 'sudoku_progress'; }
-    function getRecordKey(level, stageIdx) { return `sudoku_record_${level}_${stageIdx}`; }
-
     function loadProgress() {
-        try { return JSON.parse(localStorage.getItem(getProgressKey())) || {}; }
+        try { return JSON.parse(localStorage.getItem('sudoku_progress')) || {}; }
         catch { return {}; }
     }
 
-    function saveProgress(level, stageIdx, time, mistakes) {
+    function saveProgress(level, stageIdx, time) {
         const progress = loadProgress();
         const key = `${level}_${stageIdx}`;
-        const score = calcScore(level, time, mistakes);
+        const score = calcScore(level, time);
         const existing = progress[key];
-        if (!existing || score > existing.score) {
-            progress[key] = { time, mistakes, score, date: Date.now() };
+        const isNew = !existing || score > existing.score;
+        if (isNew) {
+            progress[key] = { time, score, date: Date.now() };
         }
-        // completed 표시
         progress[key + '_done'] = true;
-        localStorage.setItem(getProgressKey(), JSON.stringify(progress));
-        return !existing || score > existing.score;
+        localStorage.setItem('sudoku_progress', JSON.stringify(progress));
+        return isNew;
     }
 
     function isStageCompleted(level, stageIdx) {
-        const progress = loadProgress();
-        return !!progress[`${level}_${stageIdx}_done`];
+        return !!loadProgress()[`${level}_${stageIdx}_done`];
     }
 
     function getStageRecord(level, stageIdx) {
-        const progress = loadProgress();
-        return progress[`${level}_${stageIdx}`] || null;
+        return loadProgress()[`${level}_${stageIdx}`] || null;
     }
 
     // ======================== 점수 계산 ========================
-    function calcScore(level, seconds, mistakeCount) {
+    function calcScore(level, seconds) {
         const baseScore = level * 1000;
         const timeBonus = Math.max(0, 3600 - seconds) * level;
-        const mistakePenalty = mistakeCount * 200;
-        return Math.max(0, baseScore + timeBonus - mistakePenalty);
+        return baseScore + timeBonus;
     }
 
-    // ======================== 스테이지 선택 화면 ========================
+    // ======================== 스테이지 선택 ========================
     function showStageSelect() {
         stopTimer();
         isGameActive = false;
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('stageSelectScreen').style.display = 'block';
         document.getElementById('clearModal').classList.remove('show');
-        document.getElementById('gameoverModal').classList.remove('show');
+        document.getElementById('wrongModal').classList.remove('show');
         renderStageSelect();
     }
 
     function renderStageSelect() {
         const container = document.getElementById('levelList');
         container.innerHTML = '';
-
         for (let lv = 1; lv <= 10; lv++) {
             const info = LEVEL_INFO[lv];
             const section = document.createElement('div');
@@ -542,9 +573,7 @@
             const header = document.createElement('div');
             header.className = 'level-header';
             header.innerHTML = `
-                <span class="level-badge" style="background:${info.bg};color:${info.color};border:1px solid ${info.color}">
-                    Lv.${lv}
-                </span>
+                <span class="level-badge" style="background:${info.bg};color:${info.color};border:1px solid ${info.color}">Lv.${lv}</span>
                 <span class="level-name">${info.name}</span>
             `;
             section.appendChild(header);
@@ -563,7 +592,7 @@
                     <span>${stageNum}</span>
                     ${record ? `<span class="stage-time">${formatTime(record.time)}</span>` : ''}
                 `;
-                btn.style.borderColor = done ? info.color + '80' : '';
+                if (done) btn.style.borderColor = info.color + '80';
                 btn.onclick = () => startGame(lv, i);
                 grid.appendChild(btn);
             }
@@ -579,7 +608,6 @@
 
         currentLevel = level;
         currentStageIndex = stageIdx;
-        mistakes = 0;
         isNoteMode = false;
         history = [];
         selectedRow = -1;
@@ -606,15 +634,11 @@
         document.getElementById('noteBtn').classList.remove('note-active');
 
         renderBoard();
-        updateMistakesDisplay();
+        updateEmptyDisplay();
         updateNumPadUsed();
+        updateSubmitBtn();
         startTimer();
         isGameActive = true;
-    }
-
-    function restartStage() {
-        document.getElementById('gameoverModal').classList.remove('show');
-        startGame(currentLevel, currentStageIndex);
     }
 
     // ======================== 보드 렌더링 ========================
@@ -632,27 +656,26 @@
 
                 if (board[r][c] !== 0) {
                     cell.textContent = board[r][c];
-                    // 오답 표시
-                    if (!given[r][c] && board[r][c] !== solution[r][c]) {
-                        cell.classList.add('wrong');
-                    }
                 } else if (notes[r][c].size > 0) {
-                    const notesEl = document.createElement('div');
-                    notesEl.className = 'notes';
-                    for (let n = 1; n <= 9; n++) {
-                        const span = document.createElement('span');
-                        span.className = 'note-num';
-                        span.textContent = notes[r][c].has(n) ? n : '';
-                        notesEl.appendChild(span);
-                    }
-                    cell.appendChild(notesEl);
+                    renderNotes(cell, notes[r][c]);
                 }
-
                 cell.addEventListener('click', () => selectCell(r, c));
                 boardEl.appendChild(cell);
             }
         }
         applyHighlights();
+    }
+
+    function renderNotes(cell, noteSet) {
+        const notesEl = document.createElement('div');
+        notesEl.className = 'notes';
+        for (let n = 1; n <= 9; n++) {
+            const span = document.createElement('span');
+            span.className = 'note-num';
+            span.textContent = noteSet.has(n) ? n : '';
+            notesEl.appendChild(span);
+        }
+        cell.appendChild(notesEl);
     }
 
     function applyHighlights() {
@@ -681,29 +704,14 @@
     }
 
     function updateCell(r, c) {
-        const cells = document.querySelectorAll('.cell');
-        const idx = r * 9 + c;
-        const cell = cells[idx];
-        cell.className = 'cell';
-        if (given[r][c]) cell.classList.add('given');
-        else cell.classList.add('user-input');
+        const cell = document.querySelectorAll('.cell')[r * 9 + c];
+        cell.className = 'cell ' + (given[r][c] ? 'given' : 'user-input');
         cell.innerHTML = '';
 
         if (board[r][c] !== 0) {
             cell.textContent = board[r][c];
-            if (!given[r][c] && board[r][c] !== solution[r][c]) {
-                cell.classList.add('wrong');
-            }
         } else if (notes[r][c].size > 0) {
-            const notesEl = document.createElement('div');
-            notesEl.className = 'notes';
-            for (let n = 1; n <= 9; n++) {
-                const span = document.createElement('span');
-                span.className = 'note-num';
-                span.textContent = notes[r][c].has(n) ? n : '';
-                notesEl.appendChild(span);
-            }
-            cell.appendChild(notesEl);
+            renderNotes(cell, notes[r][c]);
         }
         applyHighlights();
     }
@@ -719,7 +727,6 @@
         if (!isGameActive || selectedRow < 0) return;
         if (given[selectedRow][selectedCol]) return;
 
-        // 히스토리 저장
         history.push({
             r: selectedRow, c: selectedCol,
             prevVal: board[selectedRow][selectedCol],
@@ -736,37 +743,11 @@
         } else {
             notes[selectedRow][selectedCol].clear();
             board[selectedRow][selectedCol] = num;
-            if (board[selectedRow][selectedCol] !== solution[selectedRow][selectedCol]) {
-                mistakes++;
-                updateMistakesDisplay();
-                if (mistakes >= MAX_MISTAKES) {
-                    stopTimer();
-                    isGameActive = false;
-                    setTimeout(() => document.getElementById('gameoverModal').classList.add('show'), 300);
-                    updateCell(selectedRow, selectedCol);
-                    return;
-                }
-            } else {
-                // 정답일 때 관련 셀의 메모 지우기
-                clearRelatedNotes(selectedRow, selectedCol, num);
-            }
             updateNumPadUsed();
+            updateEmptyDisplay();
+            updateSubmitBtn();
         }
         updateCell(selectedRow, selectedCol);
-        checkWin();
-    }
-
-    function clearRelatedNotes(row, col, num) {
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                const boxR = Math.floor(row / 3), boxC = Math.floor(col / 3);
-                if ((r === row || c === col || (Math.floor(r/3)===boxR && Math.floor(c/3)===boxC))
-                    && notes[r][c].has(num)) {
-                    notes[r][c].delete(num);
-                    updateCell(r, c);
-                }
-            }
-        }
     }
 
     function eraseCell() {
@@ -783,15 +764,19 @@
         notes[selectedRow][selectedCol].clear();
         updateCell(selectedRow, selectedCol);
         updateNumPadUsed();
+        updateEmptyDisplay();
+        updateSubmitBtn();
     }
 
     function undoAction() {
-        if (history.length === 0) return;
+        if (!isGameActive || history.length === 0) return;
         const last = history.pop();
         board[last.r][last.c] = last.prevVal;
         notes[last.r][last.c] = last.prevNotes;
         updateCell(last.r, last.c);
         updateNumPadUsed();
+        updateEmptyDisplay();
+        updateSubmitBtn();
     }
 
     function toggleNote() {
@@ -799,18 +784,39 @@
         document.getElementById('noteBtn').classList.toggle('note-active', isNoteMode);
     }
 
-    // ======================== 숫자 패드 ========================
+    // ======================== 숫자 패드 & 상태 표시 ========================
     function updateNumPadUsed() {
         const counts = new Array(10).fill(0);
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
                 if (board[r][c] > 0) counts[board[r][c]]++;
-            }
-        }
         document.querySelectorAll('.num-btn').forEach(btn => {
-            const n = parseInt(btn.dataset.num);
-            btn.classList.toggle('used', counts[n] >= 9);
+            btn.classList.toggle('used', counts[parseInt(btn.dataset.num)] >= 9);
         });
+    }
+
+    function countEmpty() {
+        let empty = 0;
+        for (let r = 0; r < 9; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c] === 0) empty++;
+        return empty;
+    }
+
+    function updateEmptyDisplay() {
+        document.getElementById('emptyDisplay').textContent = countEmpty();
+    }
+
+    function updateSubmitBtn() {
+        const btn = document.getElementById('submitBtn');
+        const empty = countEmpty();
+        if (empty === 0) {
+            btn.classList.add('ready');
+            btn.textContent = '제출하기 ✓';
+        } else {
+            btn.classList.remove('ready');
+            btn.textContent = `빈 칸 ${empty}개 남음`;
+        }
     }
 
     // 숫자 패드 이벤트
@@ -826,7 +832,7 @@
         if (key === 'Backspace' || key === 'Delete' || key === '0') { eraseCell(); return; }
         if (key === 'z' || key === 'Z') { undoAction(); return; }
         if (key === 'n' || key === 'N') { toggleNote(); return; }
-        // 방향키
+        if (key === 'Enter') { submitAnswer(); return; }
         if (selectedRow < 0) { selectedRow = 0; selectedCol = 0; applyHighlights(); return; }
         if (key === 'ArrowUp'    && selectedRow > 0) { selectedRow--; applyHighlights(); }
         if (key === 'ArrowDown'  && selectedRow < 8) { selectedRow++; applyHighlights(); }
@@ -834,37 +840,61 @@
         if (key === 'ArrowRight' && selectedCol < 8) { selectedCol++; applyHighlights(); }
     });
 
-    // ======================== 승리 판정 ========================
-    function checkWin() {
-        for (let r = 0; r < 9; r++) {
-            for (let c = 0; c < 9; c++) {
-                if (board[r][c] !== solution[r][c]) return;
-            }
-        }
-        // 클리어!
-        stopTimer();
-        isGameActive = false;
-        const score = calcScore(currentLevel, timerSeconds, mistakes);
-        const isNewRecord = saveProgress(currentLevel, currentStageIndex, timerSeconds, mistakes);
+    // ======================== 제출 & 검증 ========================
+    function submitAnswer() {
+        if (!isGameActive || countEmpty() > 0) return;
 
-        // 서버 점수 저장
+        // 정답 검증
+        let wrongCount = 0;
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => {
+            const r = parseInt(cell.dataset.row);
+            const c = parseInt(cell.dataset.col);
+            if (!given[r][c]) {
+                if (board[r][c] !== solution[r][c]) {
+                    cell.classList.add('wrong');
+                    wrongCount++;
+                } else {
+                    cell.classList.remove('wrong');
+                }
+            }
+        });
+
+        if (wrongCount > 0) {
+            // 실패
+            document.getElementById('wrongCountBadge').textContent = `${wrongCount}칸 틀림`;
+            document.getElementById('wrongModal').classList.add('show');
+        } else {
+            // 성공
+            stopTimer();
+            isGameActive = false;
+            showClearModal();
+        }
+    }
+
+    function closeWrongModal() {
+        document.getElementById('wrongModal').classList.remove('show');
+        // wrong 표시 유지 (플레이어가 확인할 수 있게)
+    }
+
+    function showClearModal() {
+        const score = calcScore(currentLevel, timerSeconds);
+        const isNewRecord = saveProgress(currentLevel, currentStageIndex, timerSeconds);
+
         saveScore('sudoku', score).catch(e => console.log('점수 저장 실패:', e));
 
         const stageNum = (currentLevel - 1) * 10 + currentStageIndex + 1;
         document.getElementById('clearModalSub').textContent = `레벨 ${currentLevel} · 스테이지 ${stageNum}`;
         document.getElementById('clearTime').textContent = formatTime(timerSeconds);
-        document.getElementById('clearMistakes').textContent = mistakes;
         document.getElementById('clearScore').textContent = score.toLocaleString();
 
         const badge = document.getElementById('newRecordBadge');
-        if (isNewRecord) badge.classList.remove('hidden');
-        else badge.classList.add('hidden');
+        badge.classList.toggle('hidden', !isNewRecord);
 
-        // 다음 스테이지 버튼
         const hasNext = currentStageIndex < 9 || currentLevel < 10;
         document.getElementById('nextStageBtn').style.display = hasNext ? '' : 'none';
 
-        setTimeout(() => document.getElementById('clearModal').classList.add('show'), 400);
+        setTimeout(() => document.getElementById('clearModal').classList.add('show'), 300);
     }
 
     function goNextStage() {
@@ -880,10 +910,7 @@
         stopTimer();
         timerSeconds = 0;
         updateTimerDisplay();
-        timerInterval = setInterval(() => {
-            timerSeconds++;
-            updateTimerDisplay();
-        }, 1000);
+        timerInterval = setInterval(() => { timerSeconds++; updateTimerDisplay(); }, 1000);
     }
 
     function stopTimer() {
@@ -892,10 +919,6 @@
 
     function updateTimerDisplay() {
         document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-    }
-
-    function updateMistakesDisplay() {
-        document.getElementById('mistakesDisplay').textContent = `${mistakes}/${MAX_MISTAKES}`;
     }
 
     function formatTime(seconds) {
