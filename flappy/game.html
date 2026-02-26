@@ -1456,12 +1456,10 @@
             updateHighScoreDisplay();
 
             // 서버에 점수 저장
-            if (gameState.score > 0) {
-                if (currentUser) {
-                    await saveGameScore(gameState.score);
-                } else {
-                    showAuthModalAndSaveScore(GAME_ID, gameState.score).then(() => loadLeaderboard('gameOverRankingList'));
-                }
+            if (currentUser) {
+                if (gameState.score > 0) await saveGameScore(gameState.score);
+            } else {
+                showAuthModalAndSaveScore(GAME_ID, gameState.score).then(() => loadLeaderboard('gameOverRankingList'));
             }
 
             // 랭킹 새로고침

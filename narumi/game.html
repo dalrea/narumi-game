@@ -1306,12 +1306,10 @@
             document.getElementById('pauseBtn').style.display = 'none';
 
             // 점수 저장 및 랭킹 로드
-            if (gameState.totalScore > 0) {
-                if (currentUser) {
-                    await saveGameScore(gameState.totalScore, 'savingIndicatorOver');
-                } else {
-                    showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('gameOverRankingList'));
-                }
+            if (currentUser) {
+                if (gameState.totalScore > 0) await saveGameScore(gameState.totalScore, 'savingIndicatorOver');
+            } else {
+                showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('gameOverRankingList'));
             }
             await loadLeaderboard('gameOverRankingList');
         }
@@ -1326,12 +1324,10 @@
             document.getElementById('pauseBtn').style.display = 'none';
 
             // 점수 저장 및 랭킹 로드
-            if (gameState.totalScore > 0) {
-                if (currentUser) {
-                    await saveGameScore(gameState.totalScore, 'savingIndicatorSuccess');
-                } else {
-                    showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('successRankingList'));
-                }
+            if (currentUser) {
+                if (gameState.totalScore > 0) await saveGameScore(gameState.totalScore, 'savingIndicatorSuccess');
+            } else {
+                showAuthModalAndSaveScore(GAME_ID, gameState.totalScore).then(() => loadLeaderboard('successRankingList'));
             }
             await loadLeaderboard('successRankingList');
         }

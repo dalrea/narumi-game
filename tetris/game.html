@@ -796,12 +796,10 @@
             document.getElementById('gameOverScreen').style.display = 'flex';
             updateHighScoreDisplay();
 
-            if (score > 0) {
-                if (currentUser) {
-                    await saveGameScore(score);
-                } else {
-                    showAuthModalAndSaveScore(GAME_ID, score).then(() => loadLeaderboard('gameOverRankingList'));
-                }
+            if (currentUser) {
+                if (score > 0) await saveGameScore(score);
+            } else {
+                showAuthModalAndSaveScore(GAME_ID, score).then(() => loadLeaderboard('gameOverRankingList'));
             }
             await loadLeaderboard('gameOverRankingList');
         }
