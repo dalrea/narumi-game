@@ -224,7 +224,8 @@
     <p class="subtitle">게임별 최고 점수 랭킹</p>
 
     <div class="tabs">
-        <button class="tab active" onclick="showRanking('narumi')">Narumi Game</button>
+        <button class="tab active" onclick="showRanking('sudoku')">Sudoku</button>
+        <button class="tab" onclick="showRanking('narumi')">Narumi Game</button>
         <button class="tab" onclick="showRanking('flappy')">Flappy Bird</button>
         <button class="tab" onclick="showRanking('tetris')">Tetris</button>
         <button class="tab" onclick="showRanking('monster-collection')">Monster Maze</button>
@@ -249,6 +250,7 @@
     <script src="js/supabase.js"></script>
     <script>
         const gameInfo = {
+            sudoku: { title: 'Sudoku', icon: '🔢', scoreLabel: '점' },
             narumi: { title: 'Narumi Game', icon: '🎮', scoreLabel: '점' },
             flappy: { title: 'Flappy Bird', icon: '🐦', scoreLabel: '점' },
             tetris: { title: 'Tetris', icon: '🧱', scoreLabel: '점' },
@@ -282,7 +284,7 @@
             currentGame = gameId;
 
             // 탭 업데이트
-            const gameIds = ['narumi', 'flappy', 'tetris', 'monster-collection', 'metamon-merge'];
+            const gameIds = ['sudoku', 'narumi', 'flappy', 'tetris', 'monster-collection', 'metamon-merge'];
             document.querySelectorAll('.tab').forEach((tab, i) => {
                 tab.classList.toggle('active', gameId === gameIds[i]);
             });
@@ -331,7 +333,7 @@
         if (gameParam && gameInfo[gameParam]) {
             showRanking(gameParam);
         } else {
-            showRanking('narumi');
+            showRanking('sudoku');
         }
     </script>
 </body>
