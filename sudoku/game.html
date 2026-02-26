@@ -525,11 +525,13 @@
     function saveProgress(level, stageIdx, time) {
         const progress = loadProgress();
         const key = `${level}_${stageIdx}`;
-        const score = calcScore(level, time);
         const existing = progress[key];
-        const isNew = !existing || score > existing.score;
+        const isNew = !existing;
         if (isNew) {
-            progress[key] = { time, score, date: Date.now() };
+            progress[key] = { time, date: Date.now() };
+        } else if (time < existing.time) {
+            // 기록 갱신 (더 빠른 시간)
+            progress[key] = { time, date: Date.now() };
         }
         progress[key + '_done'] = true;
         localStorage.setItem('sudoku_progress', JSON.stringify(progress));
@@ -544,11 +546,14 @@
         return loadProgress()[`${level}_${stageIdx}`] || null;
     }
 
-    // ======================== 점수 계산 ========================
-    function calcScore(level, seconds) {
-        const baseScore = level * 1000;
-        const timeBonus = Math.max(0, 3600 - seconds) * level;
-        return baseScore + timeBonus;
+    // 총 클리어한 스테이지 수 계산
+    function countClearedStages() {
+        const progress = loadProgress();
+        let count = 0;
+        for (let lv = 1; lv <= 10; lv++)
+            for (let i = 0; i < 10; i++)
+                if (progress[`${lv}_${i}_done`]) count++;
+        return count;
     }
 
     // ======================== 스테이지 선택 ========================
@@ -878,18 +883,21 @@
     }
 
     function showClearModal() {
-        const score = calcScore(currentLevel, timerSeconds);
-        const isNewRecord = saveProgress(currentLevel, currentStageIndex, timerSeconds);
+        const isNewStage = saveProgress(currentLevel, currentStageIndex, timerSeconds);
+        const totalCleared = countClearedStages();
 
-        saveScore('sudoku', score).catch(e => console.log('점수 저장 실패:', e));
+        // 랭킹 점수 = 총 클리어 스테이지 수 (새 스테이지 첫 클리어 시에만 저장)
+        if (isNewStage) {
+            saveScore('sudoku', totalCleared).catch(e => console.log('점수 저장 실패:', e));
+        }
 
         const stageNum = (currentLevel - 1) * 10 + currentStageIndex + 1;
         document.getElementById('clearModalSub').textContent = `레벨 ${currentLevel} · 스테이지 ${stageNum}`;
         document.getElementById('clearTime').textContent = formatTime(timerSeconds);
-        document.getElementById('clearScore').textContent = score.toLocaleString();
+        document.getElementById('clearScore').textContent = totalCleared;
 
         const badge = document.getElementById('newRecordBadge');
-        badge.classList.toggle('hidden', !isNewRecord);
+        badge.classList.toggle('hidden', !isNewStage);
 
         const hasNext = currentStageIndex < 9 || currentLevel < 10;
         document.getElementById('nextStageBtn').style.display = hasNext ? '' : 'none';
